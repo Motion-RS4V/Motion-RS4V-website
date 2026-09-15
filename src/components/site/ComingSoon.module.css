@@ -1,0 +1,40 @@
+.bar {
+  border-bottom: 1px solid var(--line-soft);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.barInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: var(--hdr);
+}
+
+.page {
+  min-height: calc(100svh - var(--hdr));
+  display: grid;
+  align-items: center;
+  padding-block: clamp(48px, 10vw, 120px);
+}
+
+.copy {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}
+
+.copy h1 {
+  font-size: clamp(40px, 7vw, 96px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+  max-width: 14ch;
+}
+
+.copy p {
+  color: var(--ivory-dim);
+  font-size: clamp(16px, 1.6vw, 18px);
+  max-width: 52ch;
+}

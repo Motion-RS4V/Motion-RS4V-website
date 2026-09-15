@@ -1,0 +1,31 @@
+.mark {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.motion {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 112;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--brand-blue);
+  text-transform: uppercase;
+}
+
+.word {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 122;
+  font-weight: 900;
+  font-size: 21px;
+  letter-spacing: 0.01em;
+  color: var(--ivory);
+}
+
+.word i {
+  color: var(--brand-red);
+  font-style: normal;
+}

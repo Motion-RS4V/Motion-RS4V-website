@@ -1,0 +1,26 @@
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px var(--gutter);
+  padding-bottom: calc(11px + env(safe-area-inset-bottom, 0px));
+  background: rgba(11, 12, 14, 0.97);
+  border-top: 1px solid var(--line);
+  transition: transform 0.4s var(--ease);
+}
+
+.hidden {
+  transform: translateY(110%);
+}
+
+@media (min-width: 900px) {
+  .bar {
+    display: none;
+  }
+}

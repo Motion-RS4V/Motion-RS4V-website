@@ -1,0 +1,120 @@
+.head {
+  max-width: none;
+}
+
+.big {
+  font-size: clamp(44px, 9.4vw, 150px) !important;
+  letter-spacing: -0.04em !important;
+  line-height: 0.88 !important;
+}
+
+.big span {
+  color: var(--orange);
+}
+
+.ledger {
+  border-top: 1px solid var(--line);
+  margin-bottom: clamp(56px, 8vw, 110px);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px 20px;
+  padding-block: 18px;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: baseline;
+  transition: background-color 0.25s ease;
+}
+
+.row > :first-child {
+  grid-column: 1 / -1;
+}
+
+.row:not(.rowHead):hover {
+  background: rgba(243, 240, 233, 0.025);
+}
+
+.rowHead {
+  padding-block: 14px;
+}
+
+@media (max-width: 819px) {
+  .rowHead > :first-child {
+    display: none;
+  }
+}
+
+@media (min-width: 820px) {
+  .row {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 1.4fr);
+    padding-block: 22px;
+  }
+  .row > :first-child {
+    grid-column: auto;
+  }
+}
+
+.sim {
+  color: var(--ivory-faint);
+  font-size: clamp(15px, 1.4vw, 17px);
+  text-decoration: line-through;
+  text-decoration-color: rgba(243, 240, 233, 0.25);
+  text-decoration-thickness: 1px;
+}
+
+.real {
+  color: var(--ivory);
+  font-size: clamp(16px, 1.7vw, 21px);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.evidence {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(24px, 3vw, 32px);
+}
+
+@media (min-width: 760px) {
+  .evidence {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.item {
+  display: grid;
+  gap: 14px;
+}
+
+.frame {
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--line-soft);
+}
+
+.frame video,
+.frame img {
+  transition: transform 1.2s var(--ease);
+}
+
+.item:hover .frame video,
+.item:hover .frame img {
+  transform: scale(1.035);
+}
+
+.item figcaption {
+  display: grid;
+  gap: 6px;
+}
+
+.item h3 {
+  font-size: 22px;
+  font-variation-settings: "wdth" 118;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.item p {
+  color: var(--ivory-dim);
+  font-size: 15px;
+}

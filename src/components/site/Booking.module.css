@@ -1,0 +1,46 @@
+.head {
+  display: grid;
+  gap: 28px;
+  margin-bottom: clamp(40px, 5vw, 64px);
+}
+
+@media (min-width: 900px) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.price {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+@media (min-width: 900px) {
+  .price {
+    justify-items: end;
+    text-align: right;
+  }
+}
+
+.priceNum {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 900;
+  font-size: clamp(72px, 10vw, 150px);
+  letter-spacing: -0.05em;
+  line-height: 0.8;
+  color: var(--orange);
+  font-variant-numeric: tabular-nums;
+}
+
+.priceNum small {
+  display: block;
+  font-size: 0.16em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  font-weight: 500;
+  margin-bottom: 0.4em;
+}

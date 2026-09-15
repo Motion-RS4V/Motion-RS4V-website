@@ -1,0 +1,138 @@
+.final {
+  background: var(--orange);
+  color: var(--orange-ink);
+  padding-block: clamp(72px, 11vw, 150px);
+}
+
+.finalInner {
+  display: grid;
+  gap: 36px;
+}
+
+@media (min-width: 900px) {
+  .finalInner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.final :global(.tel) {
+  color: rgba(26, 12, 4, 0.7);
+}
+
+.finalTitle {
+  margin-top: 18px;
+  font-size: clamp(48px, 9vw, 140px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  letter-spacing: -0.045em;
+  line-height: 0.86;
+}
+
+.final p {
+  font-size: clamp(16px, 1.6vw, 19px);
+  max-width: 44ch;
+  margin-top: 22px;
+  color: rgba(26, 12, 4, 0.78);
+}
+
+.footer {
+  background: var(--deep);
+  padding-top: clamp(56px, 7vw, 96px);
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+}
+
+@media (min-width: 900px) {
+  .footer {
+    padding-bottom: 28px;
+  }
+}
+
+.top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 36px;
+  padding-bottom: clamp(48px, 6vw, 80px);
+}
+
+@media (min-width: 760px) {
+  .top {
+    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+  }
+}
+
+.brand {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  justify-items: start;
+}
+
+.brand p {
+  color: var(--ivory-dim);
+  font-size: 14px;
+  max-width: 34ch;
+}
+
+.footer h4 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+  margin: 0 0 16px;
+  font-weight: 500;
+}
+
+.footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.footer ul a {
+  color: var(--ivory-dim);
+  text-decoration: none;
+  font-size: 14.5px;
+  transition: color 0.2s ease;
+}
+
+.footer ul a:hover {
+  color: var(--orange);
+}
+
+.word {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.78;
+  font-size: clamp(84px, 24vw, 360px);
+  color: var(--panel);
+  white-space: nowrap;
+  user-select: none;
+  border-top: 1px solid var(--line-soft);
+  padding-top: clamp(20px, 3vw, 40px);
+}
+
+.word i {
+  font-style: normal;
+  color: #1a1c20;
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.legal span {
+  font-size: 12.5px;
+  color: var(--ivory-faint);
+}

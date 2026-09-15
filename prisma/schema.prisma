@@ -1,0 +1,402 @@
+// RS4V database schema.
+// Conventions: money is stored in paise (Int), every timestamp is timestamptz (UTC),
+// tables and columns are snake_case in Postgres so analytics SQL stays readable.
+// Business values (price, hours, capacity, policy windows) live in `settings`, never in code.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+
+enum StaffRole {
+  OWNER
+  MANAGER
+  STAFF
+
+  @@map("staff_role")
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT // seats held while the customer pays
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  EXPIRED // payment hold ran out
+
+  @@map("booking_status")
+}
+
+enum BookingChannel {
+  ONLINE
+  WALK_IN
+  PHONE
+
+  @@map("booking_channel")
+}
+
+enum SeatStatus {
+  BOOKED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+
+  @@map("seat_status")
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  CASH
+  UPI_COUNTER
+  CARD_COUNTER
+  COMPLIMENTARY
+
+  @@map("payment_method")
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+
+  @@map("payment_status")
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  FAILED
+
+  @@map("refund_status")
+}
+
+enum RigStatus {
+  ACTIVE
+  MAINTENANCE
+  RETIRED
+
+  @@map("rig_status")
+}
+
+enum CarStatus {
+  READY
+  MAINTENANCE
+  RETIRED
+
+  @@map("car_status")
+}
+
+enum ViewMode {
+  HEADSET
+  MONITOR
+
+  @@map("view_mode")
+}
+
+// ─────────────────────────── Configuration ───────────────────────────
+
+/// One row per settings group (venue, schedule, pricing, policy, eligibility).
+/// `value` is validated by the zod schemas in src/server/settings.
+model Setting {
+  key         String   @id
+  value       Json
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedById String?  @map("updated_by_id") @db.Uuid
+
+  @@map("settings")
+}
+
+/// A date whose hours differ from the weekly schedule (holiday closure, festival late night).
+model ScheduleOverride {
+  id        String   @id @default(uuid()) @db.Uuid
+  date      DateTime @unique @db.Date
+  closed    Boolean  @default(false)
+  opensAt   String?  @map("opens_at") // "HH:MM" venue local time
+  closesAt  String?  @map("closes_at")
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("schedule_overrides")
+}
+
+// ───────────────────────────── Venue ─────────────────────────────
+
+/// A driving experience customers book. Customers choose this, never a car.
+model Experience {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique // "track" | "offroad"
+  name        String // "Track / Drift"
+  trackLabel  String   @map("track_label") // "Racing track"
+  tagline     String // "Asphalt · Fast laps"
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  cars  Car[]
+  seats BookingSeat[]
+
+  @@map("experiences")
+}
+
+/// A physical steering rig. Active rigs set how many seats a slot can sell.
+model Rig {
+  id        String    @id @default(uuid()) @db.Uuid
+  label     String    @unique // "Rig 1"
+  status    RigStatus @default(ACTIVE)
+  sortOrder Int       @default(0) @map("sort_order")
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  seats  BookingSeat[]
+  blocks SlotBlock[]
+
+  @@map("rigs")
+}
+
+/// A physical car, set up for one experience. Staff assign cars at check-in.
+model Car {
+  id           String     @id @default(uuid()) @db.Uuid
+  label        String     @unique // "T1", "O2"
+  experienceId String     @map("experience_id") @db.Uuid
+  status       CarStatus  @default(READY)
+  notes        String?
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  experience Experience    @relation(fields: [experienceId], references: [id])
+  seats      BookingSeat[]
+
+  @@index([experienceId, status])
+  @@map("cars")
+}
+
+/// Takes seats out of sale: a whole-venue closure (rigId null) or one rig for maintenance.
+model SlotBlock {
+  id          String    @id @default(uuid()) @db.Uuid
+  startsAt    DateTime  @map("starts_at") @db.Timestamptz(6)
+  endsAt      DateTime  @map("ends_at") @db.Timestamptz(6)
+  rigId       String?   @map("rig_id") @db.Uuid
+  reason      String
+  createdById String?   @map("created_by_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  liftedAt    DateTime? @map("lifted_at") @db.Timestamptz(6)
+
+  rig       Rig?          @relation(fields: [rigId], references: [id])
+  createdBy StaffProfile? @relation(fields: [createdById], references: [id])
+
+  @@index([startsAt, endsAt])
+  @@map("slot_blocks")
+}
+
+// ───────────────────────────── People ─────────────────────────────
+
+/// A customer, identified by phone number (E.164). Walk-ins are linked when staff capture a phone.
+/// Totals such as lifetime spend and last visit are derived from bookings and payments
+/// (see the analytics queries), so they can never drift out of sync.
+model Customer {
+  id                 String    @id @default(uuid()) @db.Uuid
+  phone              String    @unique
+  email              String?
+  name               String
+  marketingConsent   Boolean   @default(false) @map("marketing_consent")
+  marketingConsentAt DateTime? @map("marketing_consent_at") @db.Timestamptz(6)
+  notes              String? // staff-only notes
+  tags               String[]  @default([]) // e.g. "vip", "corporate"
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  anonymizedAt       DateTime? @map("anonymized_at") @db.Timestamptz(6) // set when a deletion request is honoured
+
+  bookings Booking[]
+
+  @@index([email])
+  @@map("customers")
+}
+
+/// Staff login profile. `id` is the Supabase Auth user id.
+model StaffProfile {
+  id          String    @id @db.Uuid
+  email       String    @unique
+  name        String
+  role        StaffRole
+  active      Boolean   @default(true)
+  lastLoginAt DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bookingsCreated Booking[]   @relation("BookingCreatedBy")
+  paymentsTaken   Payment[]   @relation("PaymentRecordedBy")
+  refundsIssued   Refund[]    @relation("RefundCreatedBy")
+  blocksCreated   SlotBlock[]
+  auditEntries    AuditLog[]
+
+  @@map("staff_profiles")
+}
+
+// ──────────────────────────── Bookings ────────────────────────────
+
+model Booking {
+  id         String         @id @default(uuid()) @db.Uuid
+  reference  String         @unique // shown to the customer, e.g. RS4V-7K2M9Q
+  customerId String         @map("customer_id") @db.Uuid
+  channel    BookingChannel
+  status     BookingStatus
+
+  slotStart DateTime @map("slot_start") @db.Timestamptz(6)
+  slotEnd   DateTime @map("slot_end") @db.Timestamptz(6)
+  seatCount Int      @map("seat_count")
+
+  // Price and policy are copied at booking time so later setting changes never alter a paid booking.
+  unitPricePaise Int     @map("unit_price_paise")
+  subtotalPaise  Int     @map("subtotal_paise")
+  discountPaise  Int     @default(0) @map("discount_paise")
+  totalPaise     Int     @map("total_paise")
+  currency       String  @default("INR")
+  couponCode     String? @map("coupon_code")
+  policySnapshot Json    @map("policy_snapshot")
+
+  holdExpiresAt   DateTime? @map("hold_expires_at") @db.Timestamptz(6)
+  confirmedAt     DateTime? @map("confirmed_at") @db.Timestamptz(6)
+  checkedInAt     DateTime? @map("checked_in_at") @db.Timestamptz(6)
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
+  cancelledAt     DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason    String?   @map("cancel_reason")
+  noShowAt        DateTime? @map("no_show_at") @db.Timestamptz(6)
+  rescheduleCount Int       @default(0) @map("reschedule_count")
+
+  // Marketing attribution, captured from the booking page URL.
+  utmSource   String? @map("utm_source")
+  utmMedium   String? @map("utm_medium")
+  utmCampaign String? @map("utm_campaign")
+  referrer    String?
+  landingPath String? @map("landing_path")
+  deviceType  String? @map("device_type") // "mobile" | "desktop" | "tablet"
+
+  createdById String?  @map("created_by_id") @db.Uuid // staff member, for walk-ins and phone bookings
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer  Customer      @relation(fields: [customerId], references: [id])
+  createdBy StaffProfile? @relation("BookingCreatedBy", fields: [createdById], references: [id])
+  seats     BookingSeat[]
+  payments  Payment[]
+  feedback  Feedback?
+
+  @@index([slotStart, status])
+  @@index([customerId, slotStart])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+/// One seat = one driver on one rig. Each seat carries its own experience, so a group can mix tracks.
+model BookingSeat {
+  id           String     @id @default(uuid()) @db.Uuid
+  bookingId    String     @map("booking_id") @db.Uuid
+  experienceId String     @map("experience_id") @db.Uuid
+  status       SeatStatus @default(BOOKED)
+  driverName   String?    @map("driver_name")
+
+  // Filled in by staff on arrival.
+  rigId       String?   @map("rig_id") @db.Uuid
+  carId       String?   @map("car_id") @db.Uuid
+  viewMode    ViewMode? @map("view_mode")
+  checkedInAt DateTime? @map("checked_in_at") @db.Timestamptz(6)
+
+  // Room for lap timing if the circuit ever reports it.
+  lapCount  Int? @map("lap_count")
+  bestLapMs Int? @map("best_lap_ms")
+
+  booking    Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  experience Experience @relation(fields: [experienceId], references: [id])
+  rig        Rig?       @relation(fields: [rigId], references: [id])
+  car        Car?       @relation(fields: [carId], references: [id])
+
+  @@index([bookingId])
+  @@index([experienceId])
+  @@map("booking_seats")
+}
+
+model Payment {
+  id                String        @id @default(uuid()) @db.Uuid
+  bookingId         String        @map("booking_id") @db.Uuid
+  method            PaymentMethod
+  status            PaymentStatus
+  amountPaise       Int           @map("amount_paise")
+  razorpayOrderId   String?       @unique @map("razorpay_order_id")
+  razorpayPaymentId String?       @unique @map("razorpay_payment_id")
+  providerPayload   Json?         @map("provider_payload") // raw webhook body, for disputes
+  recordedById      String?       @map("recorded_by_id") @db.Uuid // staff member, for counter payments
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  capturedAt        DateTime?     @map("captured_at") @db.Timestamptz(6)
+
+  booking    Booking       @relation(fields: [bookingId], references: [id])
+  recordedBy StaffProfile? @relation("PaymentRecordedBy", fields: [recordedById], references: [id])
+  refunds    Refund[]
+
+  @@index([bookingId])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+model Refund {
+  id               String       @id @default(uuid()) @db.Uuid
+  paymentId        String       @map("payment_id") @db.Uuid
+  amountPaise      Int          @map("amount_paise")
+  status           RefundStatus
+  razorpayRefundId String?      @unique @map("razorpay_refund_id")
+  reason           String
+  createdById      String?      @map("created_by_id") @db.Uuid
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  processedAt      DateTime?    @map("processed_at") @db.Timestamptz(6)
+
+  payment   Payment       @relation(fields: [paymentId], references: [id])
+  createdBy StaffProfile? @relation("RefundCreatedBy", fields: [createdById], references: [id])
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+/// Optional rating after a visit.
+model Feedback {
+  id        String   @id @default(uuid()) @db.Uuid
+  bookingId String   @unique @map("booking_id") @db.Uuid
+  rating    Int // 1–5
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("feedback")
+}
+
+// ───────────────────────────── Audit ─────────────────────────────
+
+/// Who changed what: prices, hours, refunds, no-shows, car assignments.
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  actorId    String?  @map("actor_id") @db.Uuid // null = system job
+  action     String // "settings.update", "booking.cancel", ...
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor StaffProfile? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_log")
+}

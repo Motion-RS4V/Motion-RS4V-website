@@ -1,0 +1,11 @@
+<svg width="520" height="160" viewBox="0 0 520 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">RS4V</title>
+  <desc id="desc">RS4V HyperReal Teleops FPV Circuit</desc>
+  <g transform="translate(12 20)">
+    <path d="M0 86L34 12H78L44 86H0Z" fill="#FF6B2C"/>
+    <path d="M55 86L89 12H133L99 86H55Z" fill="#F3F0E9"/>
+    <path d="M110 86L144 12H188L154 86H110Z" fill="#F3F0E9" opacity="0.62"/>
+  </g>
+  <text x="214" y="105" fill="#F3F0E9" font-family="Arial Black, Arial, sans-serif" font-size="86" font-weight="900" letter-spacing="2">RS4V</text>
+  <rect x="216" y="122" width="278" height="5" fill="#FF6B2C"/>
+</svg>

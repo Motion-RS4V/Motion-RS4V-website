@@ -1,0 +1,144 @@
+.section {
+  background: var(--deep);
+  border-block: 1px solid var(--line-soft);
+}
+
+.head {
+  display: grid;
+  gap: 18px;
+  margin-bottom: clamp(40px, 6vw, 80px);
+}
+
+.title {
+  font-size: clamp(40px, 7.4vw, 108px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.title span {
+  display: block;
+  color: var(--orange);
+}
+
+.stage {
+  display: grid;
+  align-items: center;
+  max-width: 1120px;
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
+  column-gap: 10px;
+}
+
+@media (min-width: 760px) {
+  .stage {
+    grid-template-columns: minmax(0, 1fr) clamp(140px, 18vw, 240px) minmax(0, 1fr);
+    column-gap: clamp(16px, 2.4vw, 32px);
+  }
+}
+
+.side {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.side figcaption {
+  display: grid;
+  gap: 4px;
+}
+
+.frame {
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--line);
+}
+
+.caption {
+  font-size: clamp(13px, 1.5vw, 17px);
+}
+
+.dim {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding-bottom: clamp(40px, 5vw, 56px);
+}
+
+.dimVal {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(12px, 1.6vw, 20px);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dimLine {
+  position: relative;
+  width: 100%;
+  height: 11px;
+}
+
+.dimLine::before,
+.dimLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 11px;
+  background: var(--ivory-dim);
+}
+
+.dimLine::before {
+  left: 0;
+}
+
+.dimLine::after {
+  right: 0;
+}
+
+.dimFill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--orange);
+  transform-origin: left;
+  transition: transform 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.2s;
+}
+
+.stage[data-in-view="false"] .dimFill {
+  transform: scaleX(0);
+}
+
+.dimLabel {
+  font-size: 9.5px;
+  text-align: center;
+}
+
+@media (max-width: 759px) {
+  .dimLabel {
+    display: none;
+  }
+}
+
+.foot {
+  max-width: 1120px;
+  margin: clamp(32px, 4vw, 48px) auto 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 32px;
+}
+
+.foot p {
+  font-size: clamp(15px, 1.4vw, 17px);
+  color: var(--ivory-dim);
+  max-width: 58ch;
+}

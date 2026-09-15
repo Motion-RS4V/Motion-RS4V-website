@@ -1,0 +1,326 @@
+/* Motion RS4V — design tokens and shared primitives. Section styles live next to their components. */
+
+:root {
+  color-scheme: dark;
+
+  --ground: #0b0c0e;
+  --deep: #060708;
+  --panel: #131518;
+  --well: #1b1e22;
+  --line: #2a2d33;
+  --line-soft: #1c1f24;
+  --line-strong: #43464d;
+  --ivory: #f3f0e9;
+  --ivory-dim: #aba79e;
+  --ivory-faint: #7a766f;
+  --orange: #ff6b2c;
+  --orange-hot: #ff8248;
+  --orange-ink: #1a0c04;
+  --lime: #c6f24e;
+  --brand-blue: #3aa0ff;
+  --brand-red: #e4292f;
+
+  --display: var(--font-display), "Arial Narrow", Helvetica, sans-serif;
+  --body: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: var(--font-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --gutter: clamp(18px, 4.5vw, 64px);
+  --maxw: 1320px;
+  --hdr: 60px;
+  --sec: clamp(88px, 12vw, 168px);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 900px) {
+  :root {
+    --hdr: 72px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--hdr) + 12px);
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ivory);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  overflow-x: clip;
+}
+
+p,
+figure {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: var(--orange);
+  color: var(--orange-ink);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 122;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+/* ---------- layout ---------- */
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: var(--sec);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- section heading ---------- */
+
+.head {
+  display: grid;
+  gap: 18px;
+  max-width: 860px;
+  margin-bottom: clamp(44px, 6vw, 84px);
+}
+
+.head h2 {
+  font-size: clamp(36px, 5.6vw, 76px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  letter-spacing: -0.03em;
+  line-height: 0.94;
+}
+
+.head p {
+  color: var(--ivory-dim);
+  font-size: clamp(16px, 1.5vw, 18px);
+  max-width: 58ch;
+}
+
+/* ---------- telemetry labels ---------- */
+
+.tel {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+}
+
+.tel-o {
+  color: var(--orange);
+}
+
+.val {
+  display: block;
+  font-family: var(--mono);
+  font-size: clamp(15px, 1.6vw, 18px);
+  font-weight: 500;
+  color: var(--ivory);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lime);
+  flex-shrink: 0;
+}
+
+.dot-pulse,
+.rec-dot {
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+.rec-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation-duration: 1.6s;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 0.1s ease-out,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.btn .arr {
+  display: inline-block;
+  transition: transform 0.35s var(--ease);
+}
+
+.btn:hover .arr {
+  transform: translateX(5px);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--orange);
+  color: var(--orange-ink);
+  border-color: var(--orange);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--orange-hot);
+  border-color: var(--orange-hot);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ivory);
+  border-color: rgba(243, 240, 233, 0.28);
+}
+
+.btn-ghost:hover {
+  border-color: var(--ivory);
+}
+
+.btn-ink {
+  background: var(--orange-ink);
+  color: var(--ivory);
+  border-color: var(--orange-ink);
+}
+
+.btn-ink:hover {
+  background: #000;
+  border-color: #000;
+}
+
+.btn-sm {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 11px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+
+/* ---------- media frames ---------- */
+
+.media {
+  position: relative;
+  overflow: hidden;
+  background: var(--deep);
+}
+
+.media video,
+.media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.grade video,
+.grade img {
+  filter: saturate(0.72) contrast(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

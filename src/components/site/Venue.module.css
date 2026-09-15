@@ -1,0 +1,70 @@
+.section {
+  padding-top: 0;
+}
+
+.sign {
+  height: clamp(96px, 16vw, 230px);
+  border-block: 1px solid var(--line-soft);
+  margin-bottom: clamp(56px, 8vw, 110px);
+}
+
+.sign img {
+  object-position: 50% 45%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(36px, 5vw, 80px);
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: start;
+  }
+}
+
+.plaque {
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+.plaque > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 14px;
+  padding-block: 15px;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+
+.plaque dd {
+  margin: 0;
+  font-size: 15px;
+}
+
+.today {
+  color: var(--lime);
+}
+
+.hoursList {
+  display: grid;
+  gap: 2px;
+}
+
+.links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.render {
+  display: grid;
+  gap: 12px;
+}
+
+.renderMedia {
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--line-soft);
+}
