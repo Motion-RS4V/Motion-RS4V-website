@@ -1,0 +1,395 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 48px);
+}
+
+@media (min-width: 1000px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+  }
+}
+
+.form {
+  display: grid;
+  gap: 34px;
+  min-width: 0;
+}
+
+.fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.fieldset legend {
+  width: 100%;
+  padding: 0;
+}
+
+.fieldset:disabled {
+  opacity: 0.6;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .grid2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field > span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+.field small {
+  font-size: 13px;
+  color: var(--ivory-faint);
+}
+
+.field input,
+.driver input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory);
+  font: inherit;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.field input:hover,
+.driver input:hover {
+  border-color: var(--ivory-faint);
+}
+
+.field input:focus,
+.driver input:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.drivers {
+  display: grid;
+  gap: 8px;
+}
+
+.driver {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.driverTag {
+  display: grid;
+  gap: 2px;
+}
+
+.driverTag b {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.driverTag small {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+}
+
+.policy {
+  margin: 0;
+  padding: 16px 18px 16px 34px;
+  display: grid;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+  color: var(--ivory-dim);
+  font-size: 14.5px;
+}
+
+.check {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14.5px;
+  color: var(--ivory-dim);
+  cursor: pointer;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--orange);
+  flex-shrink: 0;
+}
+
+.error {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 107, 44, 0.5);
+  background: rgba(255, 107, 44, 0.08);
+  border-radius: 2px;
+  color: var(--ivory);
+  font-size: 15px;
+}
+
+.pay {
+  width: 100%;
+  min-height: 58px;
+  font-size: 13px;
+}
+
+@media (min-width: 640px) {
+  .pay {
+    width: auto;
+    justify-self: start;
+    padding-inline: 36px;
+  }
+}
+
+.holding {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--orange);
+  background: rgba(255, 107, 44, 0.07);
+  border-radius: 2px;
+}
+
+.holdingHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.timer {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.holding p {
+  color: var(--ivory);
+  font-size: 15px;
+}
+
+.holdingActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(11, 12, 14, 0.93);
+}
+
+.overlayCard {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+  max-width: 34ch;
+}
+
+.overlayCard strong {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 122;
+  font-weight: 900;
+  font-size: clamp(24px, 4vw, 34px);
+  letter-spacing: -0.02em;
+}
+
+.overlayCard span {
+  color: var(--ivory-dim);
+  font-size: 15px;
+}
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--orange);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    border-top-color: var(--orange);
+    border-right-color: var(--orange);
+  }
+}
+
+.outcome {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  max-width: 640px;
+}
+
+.outcome h2 {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  letter-spacing: -0.03em;
+}
+
+.outcome p {
+  color: var(--ivory-dim);
+  font-size: 16px;
+}
+
+.outcome b {
+  color: var(--ivory);
+}
+
+/* ---------- summary ---------- */
+
+.slip {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 2px;
+}
+
+@media (min-width: 1000px) {
+  .slip {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+.slipHead {
+  padding: 16px 20px;
+  border-bottom: 1px dashed var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.slipBody {
+  padding: 6px 20px 12px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 14px;
+  padding-block: 13px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--line-soft);
+}
+
+.rowVal {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 14px;
+  text-align: right;
+}
+
+.rowVal > span {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.rowVal small {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 18px 20px;
+  border-top: 1px dashed var(--line);
+}
+
+.gst {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ivory-faint);
+}
+
+.totalNum {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 900;
+  font-size: 40px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.slipFoot {
+  padding: 0 20px 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.slipFoot p {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--ivory-faint);
+}
+
+.change {
+  font-size: 13.5px;
+  color: var(--ivory-dim);
+}
+
+.change:hover {
+  color: var(--orange);
+}

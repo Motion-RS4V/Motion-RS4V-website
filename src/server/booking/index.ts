@@ -5,11 +5,14 @@ export type { Actor } from "./policy";
 export { normalizeReference } from "./reference";
 export {
   cancelBooking,
+  completeFinishedSessions,
   confirmHeldBooking,
   createBooking,
   expireHolds,
   getDayAvailability,
   markNoShows,
+  previewCancellation,
+  previewReschedule,
   rescheduleBooking,
   type BookingSummary,
   type CancelResult,
@@ -18,4 +21,7 @@ export {
   type DayAvailability,
   type SlotView,
 } from "./service";
-export { addDays, localToUtc, utcToLocal, type LocalDate, type LocalTime } from "./time";
+export { sessionLabels } from "./labels";
+export { priceForSlot, quote, type Quote } from "./pricing";
+export { snapshotPolicy, type PolicySnapshot } from "./policy";
+export { addDays, isLocalDate, localToUtc, utcToLocal, type LocalDate, type LocalTime } from "./time";

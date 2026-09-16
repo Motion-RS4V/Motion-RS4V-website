@@ -135,6 +135,7 @@ export type CreateBookingInput = {
     deviceType?: string | null;
   };
   staffId?: string | null; // set for walk-in and phone bookings
+  termsAcceptedAt?: Date | null; // online checkout records when the customer accepted the booking terms
   now?: Date;
 };
 
@@ -228,6 +229,8 @@ export async function createBooking(db: Db, input: CreateBookingInput): Promise<
         holdExpiresAt: online ? addMinutes(now, settings.policy.paymentHoldMinutes) : null,
         confirmedAt: online ? null : now,
         ...input.attribution,
+        contactEmail: email,
+        termsAcceptedAt: input.termsAcceptedAt ?? null,
         createdById: input.staffId ?? null,
         seats: {
           create: input.seats.map((s) => ({
@@ -376,6 +379,50 @@ export async function cancelBooking(
   }, TX_OPTIONS);
 }
 
+/**
+ * What cancelling would do right now, without changing anything. Used to show the refund before the customer confirms.
+ * The real cancellation re-checks everything inside its own transaction.
+ */
+export async function previewCancellation(
+  db: Db,
+  input: { bookingId: string; seatIds?: string[]; actor: Actor; now?: Date },
+): Promise<{ allowed: boolean; refundPaise: number; reason: string; seatsToCancel: number; activeSeats: number }> {
+  const now = input.now ?? new Date();
+  const booking = await db.booking.findUnique({
+    where: { id: input.bookingId },
+    include: {
+      seats: { select: { id: true, status: true } },
+      payments: { select: { status: true, amountPaise: true, refunds: { select: { status: true, amountPaise: true } } } },
+    },
+  });
+  if (!booking) throw new BookingError("BOOKING_NOT_FOUND");
+  const active = booking.seats.filter((s) => s.status === "BOOKED");
+  const targets = input.seatIds ? active.filter((s) => input.seatIds!.includes(s.id)) : active;
+  const base = { seatsToCancel: targets.length, activeSeats: active.length };
+  if (booking.status !== "CONFIRMED" || targets.length === 0 || (input.seatIds && targets.length !== input.seatIds.length)) {
+    return { allowed: false, refundPaise: 0, reason: "NOT_CANCELLABLE", ...base };
+  }
+  const q = quoteCancellation({
+    slotStart: booking.slotStart,
+    policy: readPolicy(booking.policySnapshot),
+    netPaidPaise: netPaid(booking.payments),
+    activeSeats: active.length,
+    seatsToCancel: targets.length,
+    actor: input.actor,
+    now,
+  });
+  return q.allowed ? { allowed: true, refundPaise: q.refundPaise, reason: q.reason, ...base } : { allowed: false, refundPaise: 0, reason: q.reason, ...base };
+}
+
+/** Whether the customer could move this booking right now, and why not. */
+export async function previewReschedule(db: Db, input: { bookingId: string; actor: Actor; now?: Date }) {
+  const now = input.now ?? new Date();
+  const booking = await db.booking.findUnique({ where: { id: input.bookingId }, select: { status: true, slotStart: true, rescheduleCount: true, policySnapshot: true } });
+  if (!booking) throw new BookingError("BOOKING_NOT_FOUND");
+  if (booking.status !== "CONFIRMED") return { allowed: false as const, reason: "NOT_CONFIRMED" };
+  return checkReschedule({ slotStart: booking.slotStart, policy: readPolicy(booking.policySnapshot), rescheduleCount: booking.rescheduleCount, actor: input.actor, now });
+}
+
 function netPaid(payments: { status: string; amountPaise: number; refunds: { status: string; amountPaise: number }[] }[]) {
   let total = 0;
   for (const p of payments) {
@@ -455,6 +502,20 @@ export async function rescheduleBooking(
 }
 
 // ───────────────────────────── Scheduled jobs ─────────────────────────────
+
+/** Marks sessions that have finished as complete, so the board and customer history stay tidy. */
+export async function completeFinishedSessions(db: Db, now: Date = new Date()): Promise<number> {
+  const finished = await db.booking.findMany({
+    where: { status: "CHECKED_IN", slotEnd: { lte: now } },
+    select: { id: true },
+    take: 200,
+  });
+  if (finished.length === 0) return 0;
+  const ids = finished.map((b) => b.id);
+  await db.bookingSeat.updateMany({ where: { bookingId: { in: ids }, status: "CHECKED_IN" }, data: { status: "COMPLETED" } });
+  const { count } = await db.booking.updateMany({ where: { id: { in: ids } }, data: { status: "COMPLETED", completedAt: now } });
+  return count;
+}
 
 /** Releases seats from unpaid online holds. Capacity already ignores expired holds; this tidies their status. */
 export async function expireHolds(db: Db, now: Date = new Date()): Promise<number> {

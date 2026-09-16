@@ -1,0 +1,362 @@
+/* ---------- dates ---------- */
+
+.days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 28px;
+  scrollbar-width: thin;
+  min-height: 84px;
+}
+
+.daysPlaceholder {
+  font-size: 13px;
+  color: var(--ivory-faint);
+  align-self: center;
+}
+
+.day {
+  flex: 0 0 auto;
+  min-width: 72px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ivory-dim);
+  font-family: var(--mono);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.day:hover {
+  border-color: var(--ivory-faint);
+  color: var(--ivory);
+}
+
+.day i {
+  display: block;
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.day b {
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+.day small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.day[aria-pressed="true"] {
+  border-color: var(--ivory);
+  color: var(--ground);
+  background: var(--ivory);
+}
+
+/* ---------- sessions: part-of-day tabs + hour-by-hour timetable ---------- */
+
+.area {
+  display: grid;
+  min-height: 220px;
+  align-content: start;
+}
+
+.periods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  margin-bottom: 14px;
+}
+
+.period {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--ground);
+  border: 0;
+  color: var(--ivory-dim);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.period:hover {
+  color: var(--ivory);
+  background: var(--panel);
+}
+
+.period[aria-selected="true"] {
+  background: var(--ivory);
+  color: var(--ground);
+}
+
+.period:focus-visible {
+  outline-offset: -3px;
+}
+
+.periodName {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 118;
+  font-weight: 800;
+  font-size: clamp(13px, 1.6vw, 17px);
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 1.1;
+}
+
+.periodMeta {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+@media (max-width: 559px) {
+  .periodRange {
+    display: none;
+  }
+}
+
+.timetable {
+  display: grid;
+  border-top: 1px solid var(--line-soft);
+}
+
+.hourRow {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding-block: 8px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+@media (min-width: 560px) {
+  .hourRow {
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+.hourLabel {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ivory-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (min-width: 560px) {
+  .chips {
+    gap: 8px;
+  }
+}
+
+.chip {
+  position: relative;
+  display: grid;
+  gap: 7px;
+  align-content: center;
+  min-height: 54px;
+  padding: 9px 10px;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+  color: var(--ivory);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease-out;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--ivory-faint);
+}
+
+.chip:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.chipTime {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(14px, 1.5vw, 16px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.chipFoot {
+  display: flex;
+  align-items: center;
+  height: 10px;
+}
+
+.chipBar {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  max-width: 44px;
+}
+
+.chipBar i,
+.legendBar i {
+  flex: 1;
+  height: 3px;
+  border-radius: 1px;
+  background: var(--line);
+}
+
+.chipBar i.on,
+.legendBar i.on {
+  background: var(--lime);
+}
+
+.chipNote {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--orange);
+}
+
+.chipPrice {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ivory-dim);
+}
+
+.chip:disabled {
+  cursor: not-allowed;
+  background: transparent;
+  border-style: dashed;
+}
+
+.chip:disabled .chipTime,
+.chip:disabled .chipNote {
+  color: var(--ivory-faint);
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--orange-ink);
+}
+
+.chip[aria-pressed="true"] .chipBar i {
+  background: rgba(26, 12, 4, 0.22);
+}
+
+.chip[aria-pressed="true"] .chipBar i.on,
+.chip[aria-pressed="true"] .chipNote,
+.chip[aria-pressed="true"] .chipPrice {
+  background-color: transparent;
+  color: var(--orange-ink);
+}
+
+.chip[aria-pressed="true"] .chipBar i.on {
+  background: var(--orange-ink);
+}
+
+.skeleton {
+  cursor: default;
+  background: linear-gradient(90deg, var(--panel) 0%, var(--well) 50%, var(--panel) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendBar {
+  display: inline-flex;
+  gap: 2px;
+  width: 26px;
+}
+
+.legendDash {
+  width: 18px;
+  height: 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 2px;
+}
+
+.message {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  color: var(--ivory-dim);
+  font-size: 15px;
+  padding: 20px;
+  border: 1px dashed var(--line);
+  border-radius: 2px;
+}
+
+.chip[data-state="current"] {
+  border-style: dashed;
+  border-color: var(--orange);
+  background: transparent;
+  opacity: 1;
+}
+
+.chip[data-state="current"] .chipTime,
+.chip[data-state="current"] .chipNote {
+  color: var(--orange);
+}

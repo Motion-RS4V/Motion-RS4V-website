@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/site/ComingSoon";
+import { FindBookingForm } from "@/components/flow/FindBookingForm";
+import { FlowHeading, FlowShell } from "@/components/flow/FlowShell";
 
 export const metadata: Metadata = { title: "Find My Booking", robots: { index: false } };
 
-// Step 4 replaces this with lookup by booking reference plus a one-time code.
 export default function FindBookingPage() {
   return (
-    <ComingSoon
-      eyebrow="Find my booking"
-      title="Look up a booking."
-      body="Finding, moving and cancelling a booking with your reference number arrives together with online checkout."
-    />
+    <FlowShell>
+      <FlowHeading eyebrow="Find my booking" title="Get your booking link.">
+        <p>
+          Enter the mobile number or email you booked with. We&apos;ll email you a private link to view, move or cancel your upcoming bookings.
+        </p>
+      </FlowHeading>
+      <FindBookingForm />
+    </FlowShell>
   );
 }

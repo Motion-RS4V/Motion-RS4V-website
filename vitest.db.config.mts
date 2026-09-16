@@ -3,7 +3,12 @@ import { defineConfig } from "vitest/config";
 
 // Booking engine against the real database. Slow (round trips to Mumbai) and sequential by design.
 export default defineConfig({
-  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "server-only": fileURLToPath(new URL("./test/server-only-stub.ts", import.meta.url)),
+    },
+  },
   test: {
     environment: "node",
     include: ["src/**/*.db.test.ts"],

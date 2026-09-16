@@ -1,3 +1,4 @@
+import { AttributionCapture } from "@/components/site/AttributionCapture";
 import { Booking } from "@/components/site/Booking";
 import { Faq } from "@/components/site/Faq";
 import { Fpv } from "@/components/site/Fpv";
@@ -23,6 +24,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <AttributionCapture />
       <SiteHeader />
       <main>
         <Hero content={content} />

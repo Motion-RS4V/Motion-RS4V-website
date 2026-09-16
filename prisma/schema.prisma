@@ -97,6 +97,15 @@ enum CarStatus {
   @@map("car_status")
 }
 
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED // not sent on purpose, e.g. no address
+
+  @@map("email_status")
+}
+
 enum ViewMode {
   HEADSET
   MONITOR
@@ -284,6 +293,10 @@ model Booking {
   landingPath String? @map("landing_path")
   deviceType  String? @map("device_type") // "mobile" | "desktop" | "tablet"
 
+  // Where confirmations for this booking go. Copied at booking time; the customer record keeps the latest address.
+  contactEmail    String?   @map("contact_email")
+  termsAcceptedAt DateTime? @map("terms_accepted_at") @db.Timestamptz(6)
+
   createdById String?  @map("created_by_id") @db.Uuid // staff member, for walk-ins and phone bookings
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -291,8 +304,10 @@ model Booking {
   customer  Customer      @relation(fields: [customerId], references: [id])
   createdBy StaffProfile? @relation("BookingCreatedBy", fields: [createdById], references: [id])
   seats     BookingSeat[]
-  payments  Payment[]
-  feedback  Feedback?
+  payments     Payment[]
+  feedback     Feedback?
+  manageTokens ManageToken[]
+  emails       EmailMessage[]
 
   @@index([slotStart, status])
   @@index([customerId, slotStart])
@@ -379,6 +394,57 @@ model Feedback {
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@map("feedback")
+}
+
+/// A private "manage booking" link. Only a SHA-256 hash of the token is stored, so a database leak exposes no working links.
+model ManageToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  bookingId  String    @map("booking_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash")
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("manage_tokens")
+}
+
+// ───────────────────────────── Messaging ─────────────────────────────
+
+/// Every email the system tries to send, so failures can be retried and support can see what a customer received.
+model EmailMessage {
+  id                String      @id @default(uuid()) @db.Uuid
+  bookingId         String?     @map("booking_id") @db.Uuid
+  toAddress         String      @map("to_address")
+  template          String // "booking.confirmed", "booking.cancelled", ...
+  subject           String
+  payload           Json // template data, so a retry renders the same email
+  status            EmailStatus @default(PENDING)
+  provider          String // "resend" | "ses" | "console"
+  providerMessageId String?     @map("provider_message_id")
+  error             String?
+  attempts          Int         @default(0)
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  sentAt            DateTime?   @map("sent_at") @db.Timestamptz(6)
+
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([bookingId])
+  @@map("email_messages")
+}
+
+/// Fixed-window counters for abuse limits (booking holds, Find My Booking lookups).
+model RateLimitHit {
+  key         String
+  windowStart DateTime @map("window_start") @db.Timestamptz(6)
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+  @@map("rate_limits")
 }
 
 // ───────────────────────────── Audit ─────────────────────────────

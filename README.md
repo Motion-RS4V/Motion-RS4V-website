@@ -2,7 +2,7 @@
 
 Booking site and venue console for Motion RS4V, a remote-driven FPV car circuit at Zora The Mall, Raipur.
 
-**Stack:** Next.js 16 · TypeScript · Supabase (Postgres, Auth) · Prisma 7 · Razorpay
+**Stack:** Next.js 16 · TypeScript · Supabase (Postgres, Auth) · Prisma 7 · Razorpay · Resend (email)
 
 ## Setup
 
@@ -31,6 +31,9 @@ Booking site and venue console for Motion RS4V, a remote-driven FPV car circuit 
 - **No business values in code.** Price, hours, slot length, capacity and policy windows live in the `settings` table (`src/server/settings`) and are edited from the owner console.
 - **Availability is decided on the server,** inside the booking transaction, never trusted from the browser.
 - **Customers book an experience, not a car.** Staff assign cars at check-in.
+- **Payments are always re-checked with Razorpay on the server;** the browser's word is never trusted.
+- **Manage links are the only way customers change bookings.** Tokens are stored hashed; Find My Booking emails links to the address on the booking.
+- **Staff console:** two roles (Owner, Staff). Cars and rigs are assigned automatically at check-in, with a staff override; every desk action is written to the audit log.
 - **Every new table keeps row-level security on.** Run `npm run db:check-rls` after each migration.
 - **Money is in paise; times are stored in UTC** and shown in the venue's timezone.
 
@@ -47,9 +50,20 @@ src/server/settings/      settings schemas, defaults, loader, update + audit
 src/server/booking/       booking engine: slots, pricing, capacity, policy, create/confirm/cancel/reschedule, jobs
 src/server/supabase/      Supabase admin client (server only)
 src/server/site/          public page content from settings (server only)
+src/server/payments/      Razorpay client, checkout, payment finalisation, refunds, booking emails
+src/server/email/         email templates, providers (resend | console | ses later), send log + retries
+src/server/manage/        private manage links (hashed tokens), manage view, cancel/move, Find My Booking
+src/server/staff/         staff session + roles, today board, auto rig/car assignment, desk operations
+src/proxy.ts              refreshes the staff login session on /staff requests
 src/lib/                  browser-safe helpers and shared public types
 src/components/site/      public site sections (one component + CSS module each)
 src/app/api/availability/ live sessions for a date (never cached)
+src/app/api/checkout/     hold seats + Razorpay order; /verify confirms; /release frees an unpaid hold
+src/app/api/razorpay/     webhook (needs RAZORPAY_WEBHOOK_SECRET and a public URL)
+src/app/api/manage/       cancel (GET preview, POST) and reschedule for a manage link
+src/app/api/jobs/tick     housekeeping for a scheduler: expire holds, no-shows, completed sessions, email retries
+src/app/staff/            venue console: login, board, booking detail, walk-ins, fleet, blocks
+src/app/api/staff/        console login/logout, search and one endpoint for all desk actions
 src/app/                  Next.js routes
 public/media/             trimmed clips, posters and venue images
 ```

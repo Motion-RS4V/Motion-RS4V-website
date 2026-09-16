@@ -1,0 +1,39 @@
+.button {
+  flex-shrink: 0;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(6, 7, 8, 0.94);
+}
+
+.frame {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  width: min(100%, 420px);
+}
+
+.video {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid var(--orange);
+  border-radius: 2px;
+  background: #000;
+}
+
+.frame p {
+  font-size: 15px;
+  color: var(--ivory-dim);
+  text-align: center;
+}
+
+.canvas {
+  display: none;
+}

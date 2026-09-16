@@ -1,0 +1,72 @@
+.page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  display: grid;
+  gap: 18px;
+  padding: clamp(24px, 5vw, 36px);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 2px;
+}
+
+.heading {
+  display: grid;
+  gap: 8px;
+}
+
+.heading h1 {
+  font-size: clamp(30px, 6vw, 40px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 122;
+  letter-spacing: -0.03em;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+.field input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory);
+  font: inherit;
+  font-size: 16px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.error {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 107, 44, 0.5);
+  background: rgba(255, 107, 44, 0.08);
+  border-radius: 2px;
+  font-size: 15px;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--ivory-faint);
+}

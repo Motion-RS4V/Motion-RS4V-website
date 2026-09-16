@@ -1,0 +1,57 @@
+.form,
+.done {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+  max-width: 560px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.field span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+.field input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory);
+  font: inherit;
+  font-size: 17px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.error {
+  color: var(--ivory);
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 107, 44, 0.5);
+  background: rgba(255, 107, 44, 0.08);
+  border-radius: 2px;
+  width: 100%;
+}
+
+.note {
+  font-size: 13.5px;
+  color: var(--ivory-faint);
+}
+
+.done p {
+  font-size: 17px;
+  color: var(--ivory);
+}
