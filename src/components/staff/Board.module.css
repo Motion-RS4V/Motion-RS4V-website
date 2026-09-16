@@ -81,6 +81,8 @@
 .slots {
   display: grid;
   gap: 10px;
+  /* Each session is as tall as its own bookings; a quiet slot shouldn't match a busy neighbour. */
+  align-items: start;
 }
 
 @media (min-width: 900px) {

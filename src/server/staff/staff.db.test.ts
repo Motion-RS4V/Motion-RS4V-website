@@ -8,7 +8,8 @@ import { db } from "@/server/db";
 import { fakeGateway } from "@/server/payments/fake-gateway";
 import { markRefundPaid, refundBooking } from "@/server/payments/refunds";
 import { getDayBoard, getStaffBooking, searchBookings } from "./board";
-import { checkInBooking, createBlock, createWalkIn, liftBlock, markNoShow, reassignSeat, setCarStatus } from "./operations";
+import { checkInBooking, createBlock, createWalkIn, liftBlock, markNoShow, moveBookingAtDesk, reassignSeat, setCarStatus } from "./operations";
+import { getTakings } from "./takings";
 
 const IST = "Asia/Kolkata";
 const DATE = "2099-08-10";
@@ -204,6 +205,65 @@ describe("staff console (live database)", () => {
     expect(after.outstandingRefunds).toHaveLength(0);
     expect(after.refundedPaise).toBe(booking.totalPaise);
     expect((await db.payment.findFirstOrThrow({ where: { bookingId: booking.id } })).status).toBe("REFUNDED");
+  });
+
+  it("moves a booking from the desk, even past the customer's own cut-off", async () => {
+    const booking = await book("15:00", ["track", "offroad"]);
+    const moved = await moveBookingAtDesk(db, { bookingId: booking.id, newSlotStart: at("15:30"), actorId: staffId, now: at("14:55") });
+    expect(moved.slotStart).toEqual(at("15:30"));
+
+    // Staff moves don't use up the customer's one allowed move.
+    expect((await db.booking.findUniqueOrThrow({ where: { id: booking.id } })).rescheduleCount).toBe(0);
+    const again = await moveBookingAtDesk(db, { bookingId: booking.id, newSlotStart: at("15:45"), actorId: staffId, now: at("15:29") });
+    expect(again.slotStart).toEqual(at("15:45"));
+  });
+
+  it("adds up the day's takings and the cash that should be in the drawer", async () => {
+    // Other tests also take money on this date, so measure the change this test causes.
+    const before = await getTakings(db, DATE);
+    const cashBefore = before.lines.find((l) => l.method === "CASH")?.collectedPaise ?? 0;
+    const upiBefore = before.lines.find((l) => l.method === "UPI_COUNTER")?.collectedPaise ?? 0;
+
+    const cash = await createWalkIn(db, {
+      slotStart: at("16:30"),
+      seats: [{ experienceCode: "track" }],
+      customer: { name: "Cash One", phone: phone() },
+      payment: { method: "CASH" },
+      actorId: staffId,
+      now: at("16:20"),
+    });
+    await db.payment.updateMany({ where: { bookingId: cash.id }, data: { capturedAt: at("16:20") } });
+
+    const upi = await createWalkIn(db, {
+      slotStart: at("16:45"),
+      seats: [{ experienceCode: "offroad" }, { experienceCode: "offroad" }],
+      customer: { name: "Upi Two", phone: phone() },
+      payment: { method: "UPI_COUNTER" },
+      actorId: staffId,
+      now: at("16:40"),
+    });
+    await db.payment.updateMany({ where: { bookingId: upi.id }, data: { capturedAt: at("16:40") } });
+
+    const after = await getTakings(db, DATE);
+    expect((after.lines.find((l) => l.method === "CASH")?.collectedPaise ?? 0) - cashBefore).toBe(49_900);
+    expect((after.lines.find((l) => l.method === "UPI_COUNTER")?.collectedPaise ?? 0) - upiBefore).toBe(99_800);
+    expect(after.cashInDrawerPaise - before.cashInDrawerPaise).toBe(49_900);
+    expect(after.counter.netPaise - before.counter.netPaise).toBe(149_700);
+
+    // A cash refund handed back today comes straight off the drawer figure.
+    await cancelBooking(db, { bookingId: cash.id, actor: { kind: "customer" }, now: at("16:21") });
+    const refund = await refundBooking(db, fakeGateway(), { bookingId: cash.id, amountPaise: 49_900, reason: "Customer cancellation", actorId: staffId });
+
+    const withPending = await getTakings(db, DATE);
+    expect(withPending.pendingDeskRefunds.map((r) => r.reference)).toContain(cash.reference);
+    expect(withPending.cashInDrawerPaise).toBe(after.cashInDrawerPaise); // not deducted until handed over
+
+    await markRefundPaid(db, { refundId: refund.refundIds[0], actorId: staffId });
+    await db.refund.updateMany({ where: { id: refund.refundIds[0] }, data: { processedAt: at("16:25") } });
+
+    const settled = await getTakings(db, DATE);
+    expect(settled.cashInDrawerPaise).toBe(before.cashInDrawerPaise);
+    expect(settled.pendingDeskRefunds.map((r) => r.reference)).not.toContain(cash.reference);
   });
 
   it("records who did what", async () => {

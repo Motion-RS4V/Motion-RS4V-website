@@ -10,6 +10,7 @@ import {
   createWalkIn,
   liftBlock,
   markNoShow,
+  moveBookingAtDesk,
   reassignSeat,
   setCarStatus,
   setRigStatus,
@@ -45,6 +46,7 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("rig-status"), rigId: uuid, status: z.enum(["ACTIVE", "MAINTENANCE", "RETIRED"]) }),
   z.object({ action: z.literal("block"), start: z.iso.datetime(), end: z.iso.datetime(), rigId: uuid.nullable().optional(), reason: z.string().trim().min(3).max(200) }),
   z.object({ action: z.literal("lift-block"), blockId: uuid }),
+  z.object({ action: z.literal("move"), bookingId: uuid, start: z.iso.datetime() }),
   z.object({ action: z.literal("refund-paid"), refundId: uuid }),
   z.object({ action: z.literal("refund-retry"), refundId: uuid }),
 ]);
@@ -108,6 +110,11 @@ export async function POST(request: Request) {
 
       case "lift-block":
         return jsonOk(await liftBlock(db, { blockId: body.blockId, actorId }));
+
+      case "move": {
+        const moved = await moveBookingAtDesk(db, { bookingId: body.bookingId, newSlotStart: new Date(body.start), actorId });
+        return jsonOk({ slotStart: moved.slotStart.toISOString() });
+      }
 
       case "refund-paid":
         return jsonOk(await markRefundPaid(db, { refundId: body.refundId, actorId }));

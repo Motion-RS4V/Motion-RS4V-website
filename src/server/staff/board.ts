@@ -171,6 +171,20 @@ export async function getDayBoard(db: PrismaClient, date: LocalDate, opts: { now
   };
 }
 
+/**
+ * Which bookings the desk means when it searches a name. Anything still to happen, or happening now,
+ * comes first; finished sessions stay findable underneath, and cancelled ones sit last. A regular
+ * customer can have a week of history, and it must never bury the booking they're standing there for.
+ */
+const SEARCH_GRACE_MS = 60 * 60_000;
+
+function searchRank(status: string, slotStart: Date, now: Date) {
+  if (status === "CANCELLED" || status === "EXPIRED") return 2;
+  if (status === "COMPLETED" || status === "NO_SHOW") return 1;
+  // CHECKED_IN, CONFIRMED and PENDING_PAYMENT: live while the session hasn't long passed.
+  return slotStart.getTime() >= now.getTime() - SEARCH_GRACE_MS ? 0 : 1;
+}
+
 /** Desk search: booking reference, mobile number or name. */
 export async function searchBookings(db: PrismaClient, query: string, now = new Date()) {
   const trimmed = query.trim();
@@ -188,7 +202,7 @@ export async function searchBookings(db: PrismaClient, query: string, now = new 
       slotStart: { gte: new Date(now.getTime() - 7 * 24 * 60 * 60_000) },
     },
     orderBy: { slotStart: "asc" },
-    take: 20,
+    take: 40,
     select: {
       id: true,
       reference: true,
@@ -201,16 +215,24 @@ export async function searchBookings(db: PrismaClient, query: string, now = new 
   });
 
   const settings = await loadSettings(db);
-  return bookings.map((b) => ({
-    id: b.id,
-    reference: b.reference,
-    status: b.status,
-    channel: b.channel,
-    seatCount: b.seatCount,
-    name: b.customer.name,
-    phone: b.customer.phone,
-    ...sessionLabels(b.slotStart, new Date(b.slotStart.getTime() + settings.schedule.slotMinutes * 60_000), settings.venue.timezone),
-  }));
+  return bookings
+    .map((b) => ({ ...b, rank: searchRank(b.status, b.slotStart, now) }))
+    .sort((a, b) =>
+      // Live bookings soonest first; everything finished or void, most recent first.
+      a.rank !== b.rank ? a.rank - b.rank : a.rank === 0 ? +a.slotStart - +b.slotStart : +b.slotStart - +a.slotStart,
+    )
+    .slice(0, 20)
+    .map((b) => ({
+      id: b.id,
+      reference: b.reference,
+      status: b.status,
+      channel: b.channel,
+      seatCount: b.seatCount,
+      name: b.customer.name,
+      phone: b.customer.phone,
+      live: b.rank === 0,
+      ...sessionLabels(b.slotStart, new Date(b.slotStart.getTime() + settings.schedule.slotMinutes * 60_000), settings.venue.timezone),
+    }));
 }
 
 export type StaffBooking = Awaited<ReturnType<typeof getStaffBooking>>;
@@ -294,6 +316,11 @@ export async function getStaffBooking(db: PrismaClient, id: string) {
     cars,
     arriveEarlyMinutes: settings.schedule.arriveEarlyMinutes,
     freeCancelHours: settings.policy.freeCancelHours,
+    venue: {
+      timezone: settings.venue.timezone,
+      bookingWindowDays: settings.schedule.bookingWindowDays,
+      slotMinutes: settings.schedule.slotMinutes,
+    },
     cancelQuotes: {
       customer: customerQuote ? { allowed: customerQuote.allowed, refundPaise: customerQuote.refundPaise, reason: customerQuote.reason } : null,
       venue: venueQuote ? { allowed: venueQuote.allowed, refundPaise: venueQuote.refundPaise, reason: venueQuote.reason } : null,

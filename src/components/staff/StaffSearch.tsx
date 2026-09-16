@@ -3,9 +3,21 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { QrScanButton } from "./QrScanButton";
+import { useScannerInput } from "./useScannerInput";
 import styles from "./StaffSearch.module.css";
 
-type Result = { id: string; reference: string; name: string; phone: string; status: string; seatCount: number; dateLabel: string; timeLabel: string };
+type Result = {
+  id: string;
+  reference: string;
+  name: string;
+  phone: string;
+  status: string;
+  seatCount: number;
+  dateLabel: string;
+  timeLabel: string;
+  /** Still to happen or happening now, as opposed to finished or cancelled. */
+  live: boolean;
+};
 
 /** Find a booking by reference, mobile number or name; or scan the customer's QR code. */
 export function StaffSearch() {
@@ -50,6 +62,21 @@ export function StaffSearch() {
     router.push(`/staff/booking/${id}`);
   }
 
+  /** A scanned reference is unambiguous: jump straight to the booking. */
+  function lookUp(text: string) {
+    setQuery(text);
+    setOpen(true);
+    fetch(`/api/staff/search?q=${encodeURIComponent(text)}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((b) => {
+        if (b.results?.length === 1) goTo(b.results[0].id);
+        else setResults(b.results ?? []);
+      })
+      .catch(() => {});
+  }
+
+  useScannerInput(lookUp);
+
   return (
     <div className={styles.wrap} ref={box}>
       <div className={styles.field}>
@@ -57,30 +84,23 @@ export function StaffSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => shown.length > 0 && setOpen(true)}
+          onKeyDown={(e) => {
+            // A scanner typing into the box finishes with Enter; open the one match it found.
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            if (shown.length === 1) goTo(shown[0].id);
+          }}
           placeholder="Search booking reference, mobile or name"
           aria-label="Search bookings"
           autoComplete="off"
         />
-        <QrScanButton
-          onScan={(text) => {
-            setQuery(text);
-            setOpen(true);
-            // A scanned reference is unambiguous: jump straight to the booking.
-            fetch(`/api/staff/search?q=${encodeURIComponent(text)}`, { cache: "no-store" })
-              .then((r) => r.json())
-              .then((b) => {
-                if (b.results?.length === 1) goTo(b.results[0].id);
-                else setResults(b.results ?? []);
-              })
-              .catch(() => {});
-          }}
-        />
+        <QrScanButton onScan={lookUp} />
       </div>
       {open && shown.length > 0 && (
         <ul className={styles.results}>
           {shown.map((r) => (
             <li key={r.id}>
-              <button type="button" onClick={() => goTo(r.id)}>
+              <button type="button" onClick={() => goTo(r.id)} data-live={r.live ? "yes" : "no"}>
                 <span className={styles.ref}>{r.reference}</span>
                 <span className={styles.who}>
                   {r.name} · {r.phone}

@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SessionPicker } from "@/components/site/SessionPicker";
 import { formatRupees } from "@/lib/format";
+import type { PublicSlot } from "@/lib/public-types";
+import { whatsappUrl } from "@/lib/links";
+import { shortDate } from "@/lib/venue-time";
 import type { StaffBooking } from "@/server/staff/board";
 import styles from "./StaffBooking.module.css";
 
@@ -47,8 +51,14 @@ export function StaffBookingView({ booking }: { booking: StaffBooking }) {
   const [confirm, setConfirm] = useState<"cancel" | "no-show" | null>(null);
   const [cause, setCause] = useState<"CUSTOMER" | "VENUE">("CUSTOMER");
   const [editingSeat, setEditingSeat] = useState<string | null>(null);
+  const [moving, setMoving] = useState(false);
+  const [newSlot, setNewSlot] = useState<{ slot: PublicSlot; date: string } | null>(null);
 
   const waiting = booking.seats.filter((s) => s.status === "BOOKED");
+  const seatCounts: Record<string, number> = {};
+  for (const seat of booking.seats) {
+    if (seat.status === "BOOKED" || seat.status === "CHECKED_IN") seatCounts[seat.experience.code] = (seatCounts[seat.experience.code] ?? 0) + 1;
+  }
   const active = booking.seats.filter((s) => s.status !== "CANCELLED");
 
   async function post(action: string, body: Record<string, unknown>, success: string) {
@@ -95,7 +105,14 @@ export function StaffBookingView({ booking }: { booking: StaffBooking }) {
         </div>
         <div className={styles.customer}>
           <span className={styles.name}>{booking.customer.name}</span>
-          <a href={`tel:${booking.customer.phone}`}>{booking.customer.phone}</a>
+          <span className={styles.contactRow}>
+            <a href={`tel:${booking.customer.phone}`}>{booking.customer.phone}</a>
+            {whatsappUrl(booking.customer.phone) && (
+              <a className={styles.whatsapp} href={whatsappUrl(booking.customer.phone)!} target="_blank" rel="noreferrer">
+                WhatsApp
+              </a>
+            )}
+          </span>
           {booking.contactEmail && <span className={styles.email}>{booking.contactEmail}</span>}
           <span className="tel">
             {booking.channel === "WALK_IN" ? "Walk-in" : booking.channel === "PHONE" ? "Phone booking" : "Booked online"}
@@ -254,6 +271,57 @@ export function StaffBookingView({ booking }: { booking: StaffBooking }) {
           )}
         </ul>
       </section>
+
+      {booking.status === "CONFIRMED" && (
+        <section className={styles.card}>
+          <div className={styles.cardHead}>
+            <span className="tel">Move to another session</span>
+            {!moving && (
+              <button className="btn btn-ghost btn-sm" type="button" onClick={() => setMoving(true)}>
+                Move booking
+              </button>
+            )}
+          </div>
+          {moving && (
+            <>
+              <p className={styles.muted}>
+                Moves every driver to the new time, keeping what they paid. Useful when someone arrives late or wants a different session.
+              </p>
+              <SessionPicker
+                timezone={booking.venue.timezone}
+                bookingWindowDays={booking.venue.bookingWindowDays}
+                slotMinutes={booking.venue.slotMinutes}
+                basePricePaise={booking.unitPricePaise}
+                counts={seatCounts}
+                selectedStart={newSlot?.slot.start ?? null}
+                onSelect={(slot, date) => setNewSlot({ slot, date })}
+                onDateChange={() => setNewSlot(null)}
+                currentStart={booking.slotStartIso}
+              />
+              <div className={styles.rowButtons}>
+                <button
+                  className="btn btn-primary btn-sm"
+                  type="button"
+                  disabled={!newSlot || busy !== null}
+                  onClick={() =>
+                    void post("move", { bookingId: booking.id, start: newSlot!.slot.start }, `Moved to ${shortDate(newSlot!.date).label}, ${newSlot!.slot.time}.`).then(
+                      () => {
+                        setMoving(false);
+                        setNewSlot(null);
+                      },
+                    )
+                  }
+                >
+                  {busy === "move" ? "Moving…" : newSlot ? `Move to ${shortDate(newSlot.date).label}, ${newSlot.slot.time}` : "Pick a new time"}
+                </button>
+                <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setMoving(false); setNewSlot(null); }}>
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       {(booking.status === "CONFIRMED" || booking.status === "CHECKED_IN") && (
         <section className={styles.card}>

@@ -1,7 +1,9 @@
 import "server-only";
 
 import type { CarStatus, Prisma, PrismaClient, RigStatus } from "@/generated/prisma/client";
-import { BookingError, createBooking } from "@/server/booking";
+import { BookingError, createBooking, rescheduleBooking } from "@/server/booking";
+import { createManageToken } from "@/server/manage/tokens";
+import { emailBookingRescheduled } from "@/server/payments/notifications";
 import { lockSlots } from "@/server/booking/inventory";
 import { pickAssignments, type Assignment } from "./assignment";
 
@@ -178,6 +180,25 @@ export async function reassignSeat(
     await audit(tx, input.actorId, "seat.reassign", "booking", seat.bookingId, { seatId: seat.id, rigId: input.rigId ?? null, carId: input.carId ?? null });
     return { rigLabel: updated.rig?.label ?? null, carLabel: updated.car?.label ?? null };
   }, TX_OPTIONS);
+}
+
+/**
+ * Moves a booking to another session from the desk (late arrival, a swap the customer asks for).
+ * Staff moves aren't limited by the customer's one-move allowance, and the customer is emailed the new time.
+ */
+export async function moveBookingAtDesk(
+  db: Db,
+  input: { bookingId: string; newSlotStart: Date; actorId: string; now?: Date },
+) {
+  const moved = await rescheduleBooking(db, {
+    bookingId: input.bookingId,
+    newSlotStart: input.newSlotStart,
+    actor: { kind: "staff", staffId: input.actorId },
+    now: input.now,
+  });
+  const token = await createManageToken(db, { id: moved.id, slotEnd: moved.slotEnd });
+  await emailBookingRescheduled(db, moved.id, token);
+  return moved;
 }
 
 /** Staff marking a driver (or a whole booking) as not turned up, before the automatic sweep does. */

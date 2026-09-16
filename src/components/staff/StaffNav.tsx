@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/staff/sell", label: "Walk-in" },
   { href: "/staff/fleet", label: "Fleet" },
   { href: "/staff/blocks", label: "Blocks" },
+  { href: "/staff/takings", label: "Takings" },
 ];
 
 export function StaffNav({ name, role }: { name: string; role: string }) {

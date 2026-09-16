@@ -109,6 +109,7 @@ export function BookingWidget({ experiences, maxSeats, timezone, bookingWindowDa
           counts={counts}
           selectedStart={slot?.start ?? null}
           onSelect={(s, d) => setPicked({ slot: s, date: d })}
+          onSelectedSlotChange={(s) => setPicked((current) => (current ? { ...current, slot: s } : current))}
           onDateChange={(d) => {
             setDate(d);
             setPicked(null);

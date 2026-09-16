@@ -21,14 +21,17 @@ function BookingRow({ booking }: { booking: BoardBooking }) {
         <span className={styles.ref}>{booking.reference}</span>
       </span>
       <span className={styles.seats}>
-        {booking.seats.map((seat) => (
-          <span key={seat.id} className={styles.seat} data-tone={SEAT_TONE[seat.status] ?? "wait"}>
-            {seat.driverName || seat.experience}
-            <small>
-              {seat.car ? `${seat.car} · ${seat.rig}` : seat.experience}
-            </small>
-          </span>
-        ))}
+        {booking.seats.map((seat) => {
+          // The booker's own name is already above; repeating it on their seat just makes the card taller.
+          const driver = seat.driverName && seat.driverName !== booking.customerName ? seat.driverName : null;
+          const detail = seat.car ? `${seat.car} · ${seat.rig}` : driver ? seat.experience : null;
+          return (
+            <span key={seat.id} className={styles.seat} data-tone={SEAT_TONE[seat.status] ?? "wait"}>
+              {driver ?? seat.experience}
+              {detail && <small>{detail}</small>}
+            </span>
+          );
+        })}
       </span>
       <span className={styles.bookingFoot}>
         {booking.channel === "WALK_IN" ? "Walk-in" : booking.channel === "PHONE" ? "Phone" : "Online"}
@@ -45,8 +48,16 @@ export function BoardView({ board, today }: { board: Board; today: string }) {
 
   useEffect(() => {
     if (!live) return;
-    const timer = setInterval(() => router.refresh(), REFRESH_MS);
-    return () => clearInterval(timer);
+    // Nothing to redraw while the console is in a background tab; catch up the moment it's back.
+    const tick = () => !document.hidden && router.refresh();
+    const timer = setInterval(tick, REFRESH_MS);
+    document.addEventListener("visibilitychange", tick);
+    window.addEventListener("focus", tick);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+      window.removeEventListener("focus", tick);
+    };
   }, [live, router]);
 
   const label = shortDate(board.date);

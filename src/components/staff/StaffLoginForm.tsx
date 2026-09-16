@@ -9,6 +9,7 @@ export function StaffLoginForm({ next }: { next?: string }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetNote, setResetNote] = useState<string | null>(null);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -53,7 +54,29 @@ export function StaffLoginForm({ next }: { next?: string }) {
         <button className="btn btn-primary" type="submit" disabled={busy}>
           {busy ? "Signing in…" : "Sign in"} <span className="arr">→</span>
         </button>
-        <p className={styles.note}>Forgotten your password? Ask the owner to reset it.</p>
+        {resetNote ? (
+          <p className={styles.note} role="status">
+            {resetNote}
+          </p>
+        ) : (
+          <button
+            type="button"
+            className={styles.linkButton}
+            onClick={async () => {
+              if (!email) return setError("Enter your work email first, then tap this again.");
+              setError(null);
+              const res = await fetch("/api/staff/reset", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+              });
+              const body = await res.json();
+              setResetNote(res.ok ? body.message : (body.error ?? "That didn't work."));
+            }}
+          >
+            Forgotten your password?
+          </button>
+        )}
       </form>
     </main>
   );

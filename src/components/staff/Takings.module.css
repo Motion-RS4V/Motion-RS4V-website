@@ -1,0 +1,127 @@
+.page {
+  display: grid;
+  gap: 14px;
+  max-width: 900px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 122;
+  letter-spacing: -0.02em;
+  margin: 4px 0;
+}
+
+.sub,
+.muted {
+  font-size: 14px;
+  color: var(--ivory-dim);
+}
+
+.dates {
+  display: flex;
+  gap: 6px;
+}
+
+.cashCard {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--orange);
+  background: rgba(255, 107, 44, 0.08);
+  border-radius: 2px;
+}
+
+.cashCard strong {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 900;
+  font-size: clamp(38px, 8vw, 60px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.cashCard small {
+  font-size: 13px;
+  color: var(--ivory-dim);
+}
+
+.card {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--panel);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.table td {
+  padding-block: 10px;
+  border-bottom: 1px solid var(--line-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.table th:not(:first-child),
+.table td:not(:first-child) {
+  text-align: right;
+}
+
+.table tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+}
+
+.pending {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.pending li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+  background: var(--ground);
+}
+
+.pending b {
+  font-family: var(--mono);
+  font-size: 17px;
+}
+
+.pending span {
+  font-size: 13.5px;
+  color: var(--ivory-dim);
+}

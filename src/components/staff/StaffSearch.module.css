@@ -57,6 +57,11 @@
   background: var(--well);
 }
 
+/* Finished and cancelled bookings stay findable, but shouldn't compete with today's. */
+.results button[data-live="no"] {
+  color: var(--ivory-dim);
+}
+
 .ref {
   font-family: var(--mono);
   font-size: 15px;

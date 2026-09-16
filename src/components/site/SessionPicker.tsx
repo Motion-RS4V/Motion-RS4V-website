@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { formatRupees, plural } from "@/lib/format";
 import type { PublicDay, PublicSlot } from "@/lib/public-types";
 import { addMinutesToTime, PERIODS, periodOf, slotFits, type Period, type SeatCounts } from "@/lib/sessions";
@@ -16,6 +16,8 @@ type Props = {
   counts: SeatCounts;
   selectedStart: string | null;
   onSelect: (slot: PublicSlot, date: string) => void;
+  /** Fresh seat counts for the session already chosen, when a background re-check changes them. */
+  onSelectedSlotChange?: (slot: PublicSlot) => void;
   onDateChange?: (date: string) => void;
   /** Step numbers for the two labels, e.g. [2, 3] in the booking flow. */
   steps?: [number, number];
@@ -39,6 +41,16 @@ function subscribeToMinute(onChange: () => void) {
   return () => clearInterval(timer);
 }
 
+/** How often an open picker quietly re-checks seat counts, so someone else's booking shows up. */
+const REFRESH_MS = 30_000;
+
+async function fetchDay(date: string, signal: AbortSignal): Promise<PublicDay> {
+  const res = await fetch(`/api/availability?date=${date}`, { cache: "no-store", signal });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error ?? "Sessions couldn't be loaded.");
+  return body as PublicDay;
+}
+
 /** Date strip, part-of-day tabs and an hour-by-hour timetable of live sessions. */
 export function SessionPicker({
   timezone,
@@ -48,6 +60,7 @@ export function SessionPicker({
   counts,
   selectedStart,
   onSelect,
+  onSelectedSlotChange,
   onDateChange,
   steps,
   currentStart,
@@ -65,12 +78,8 @@ export function SessionPicker({
   useEffect(() => {
     if (!date || !requestKey) return;
     const controller = new AbortController();
-    fetch(`/api/availability?date=${date}`, { cache: "no-store", signal: controller.signal })
-      .then(async (res) => {
-        const body = await res.json();
-        if (!res.ok) throw new Error(body.error ?? "Sessions couldn't be loaded.");
-        setResult({ key: requestKey, status: "ready", day: body as PublicDay });
-      })
+    fetchDay(date, controller.signal)
+      .then((day) => setResult({ key: requestKey, status: "ready", day }))
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         setResult({ key: requestKey, status: "error", message: error instanceof Error ? error.message : "Sessions couldn't be loaded." });
@@ -78,7 +87,47 @@ export function SessionPicker({
     return () => controller.abort();
   }, [date, requestKey]);
 
+  // Seats sell while the picker sits open, so re-check quietly: the timetable updates in place, with
+  // no spinner and no lost selection. Paused while the tab is hidden, and caught up on return.
+  useEffect(() => {
+    if (!date || !requestKey) return;
+    const controller = new AbortController();
+
+    const refresh = () => {
+      if (document.hidden) return;
+      fetchDay(date, controller.signal)
+        .then((day) => setResult({ key: requestKey, status: "ready", day }))
+        .catch(() => {});
+    };
+
+    const timer = setInterval(refresh, REFRESH_MS);
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      controller.abort();
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [date, requestKey]);
+
   const day = load.status === "ready" ? load.day : null;
+  const freshSelected = day && selectedStart ? (day.slots.find((s) => s.start === selectedStart) ?? null) : null;
+
+  // A background re-check can fill the session someone already chose; hand the new counts back so the
+  // summary and the Continue button agree with the timetable.
+  const lastPushed = useRef<string | null>(null);
+  useEffect(() => {
+    if (!freshSelected || !onSelectedSlotChange) {
+      lastPushed.current = null;
+      return;
+    }
+    const stamp = JSON.stringify(freshSelected);
+    if (lastPushed.current === stamp) return;
+    lastPushed.current = stamp;
+    onSelectedSlotChange(freshSelected);
+  }, [freshSelected, onSelectedSlotChange]);
+
   const upcoming = day ? day.slots.filter((s) => s.reason !== "PAST") : [];
   const selected = upcoming.find((s) => s.start === selectedStart) ?? null;
   const periods = PERIODS.map((name) => {
