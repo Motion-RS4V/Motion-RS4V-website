@@ -80,6 +80,10 @@ export function StaffSearch() {
   return (
     <div className={styles.wrap} ref={box}>
       <div className={styles.field}>
+        <svg className={styles.icon} viewBox="0 0 20 20" aria-hidden>
+          <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+          <path d="m13 13 4.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -90,7 +94,7 @@ export function StaffSearch() {
             e.preventDefault();
             if (shown.length === 1) goTo(shown[0].id);
           }}
-          placeholder="Search booking reference, mobile or name"
+          placeholder="Find a booking: reference, mobile or name"
           aria-label="Search bookings"
           autoComplete="off"
         />

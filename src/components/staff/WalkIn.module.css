@@ -312,3 +312,16 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+
+
+/* Wide screens: the sale steps two across, reading left to right. Headers, messages and action bars span both columns. */
+@media (min-width: 1200px) {
+  .page {
+    max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .page > :not(section):not(form) {
+    grid-column: 1 / -1;
+  }
+}

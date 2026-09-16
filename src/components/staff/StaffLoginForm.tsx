@@ -23,7 +23,8 @@ export function StaffLoginForm({ next }: { next?: string }) {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Sign in failed.");
-      window.location.assign(next?.startsWith("/staff") ? next : "/staff");
+      // Owners start on their dashboard; everyone else on the day board.
+      window.location.assign(next?.startsWith("/staff") ? next : body.role === "OWNER" ? "/staff/dashboard" : "/staff");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign in failed.");
       setBusy(false);

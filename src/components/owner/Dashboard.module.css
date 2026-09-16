@@ -1,0 +1,565 @@
+/* Owner dashboard. The console is dark-only, so chart colors are the dark-surface steps (validated against --panel). */
+
+.root {
+  --viz-online: #3987e5;
+  --viz-desk: #d95926;
+  --viz-bar: #3987e5;
+  --viz-seq-1: #104281;
+  --viz-seq-2: #1c5cab;
+  --viz-seq-3: #3987e5;
+  --viz-seq-4: #86b6ef;
+  --viz-grid: #22252a;
+}
+
+/* ── Range filter ── */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 16px;
+}
+
+.custom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+
+.custom label {
+  display: grid;
+  gap: 4px;
+}
+
+.custom span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+}
+
+.custom input {
+  min-height: 40px;
+  padding: 0 10px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory);
+  font: inherit;
+  font-size: 15px;
+  color-scheme: dark;
+}
+
+/* ── Stat tiles ── */
+
+.tiles {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+
+.tile {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--panel);
+}
+
+.tile[data-hero] {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 720px) {
+  .tile[data-hero] {
+    grid-column: span 2;
+  }
+}
+
+/* Hero (two columns) + five tiles on one row, so no tile is left alone on a second row. */
+@media (min-width: 1000px) {
+  .tiles {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) and (max-width: 999px) {
+  .tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.tileLabel {
+  font-size: 13px;
+  color: var(--ivory-dim);
+}
+
+.tileValue {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.tile[data-hero] .tileValue {
+  font-size: 48px;
+}
+
+.delta {
+  font-size: 12.5px;
+  color: var(--ivory-faint);
+}
+
+.delta b {
+  font-weight: 600;
+}
+
+.delta[data-good="true"] b {
+  color: var(--lime);
+}
+
+.delta[data-good="false"] b {
+  color: var(--orange-hot);
+}
+
+.two {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Wide screens: the four summary cards in one row. */
+@media (min-width: 1400px) {
+  .two {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ── Chart chrome ── */
+
+.chart {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: var(--ivory-dim);
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.tableToggle {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory-dim);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tableToggle:hover {
+  color: var(--ivory);
+}
+
+.empty {
+  color: var(--ivory-faint);
+  font-size: 14px;
+}
+
+/* ── Revenue columns ── */
+
+.plot {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  height: 240px;
+}
+
+.yAxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory-faint);
+  text-align: right;
+  transform: translateY(-6px);
+}
+
+.columns {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  padding-bottom: 20px;
+  min-width: 0;
+}
+
+.grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--viz-grid);
+  margin-bottom: 20px;
+  pointer-events: none;
+}
+
+.column {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  outline: none;
+  cursor: default;
+}
+
+.column[data-active] {
+  background: rgba(243, 240, 233, 0.04);
+}
+
+.column:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--orange-hot);
+}
+
+.stack {
+  position: relative;
+  z-index: 1;
+  width: min(24px, calc(100% - 2px));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+}
+
+.stack span {
+  flex-basis: 0;
+  min-height: 2px;
+}
+
+.segOnline {
+  background: var(--viz-online);
+}
+
+.segDesk {
+  background: var(--viz-desk);
+}
+
+.stack span:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.column[data-active] .stack span {
+  filter: brightness(1.15);
+}
+
+.xLabel {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--ivory-faint);
+  white-space: nowrap;
+}
+
+.tooltip {
+  position: absolute;
+  top: 0;
+  z-index: 3;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 3px;
+  min-width: 150px;
+  padding: 10px 12px;
+  background: var(--deep);
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  font-size: 12.5px;
+  color: var(--ivory-dim);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tooltip b {
+  color: var(--ivory);
+  margin-bottom: 2px;
+}
+
+.tooltip strong {
+  color: var(--ivory);
+  font-weight: 600;
+}
+
+.tooltip span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip i {
+  width: 10px;
+  height: 2px;
+}
+
+.tooltipTotal {
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+  margin-top: 2px;
+}
+
+/* ── Heatmap ── */
+
+.heatWrap {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.heat {
+  display: grid;
+  gap: 2px;
+  min-width: min-content;
+}
+
+.heatHour,
+.heatDay {
+  font-size: 11px;
+  color: var(--ivory-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.heatHour {
+  text-align: left;
+  padding-bottom: 2px;
+}
+
+.heatDay {
+  display: flex;
+  align-items: center;
+}
+
+.heatCell {
+  height: 26px;
+  border-radius: 2px;
+  outline: none;
+}
+
+.heatCell[data-closed] {
+  background-image: repeating-linear-gradient(45deg, transparent 0 4px, var(--line-soft) 4px 5px) !important;
+}
+
+.heatCell[data-active],
+.heatCell:focus-visible {
+  box-shadow: 0 0 0 2px var(--ivory);
+}
+
+.heatReadout {
+  font-size: 13px;
+  color: var(--ivory-dim);
+  margin: 0;
+  min-height: 18px;
+}
+
+/* ── Bar lists ── */
+
+.bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.bars li {
+  display: grid;
+  grid-template-columns: minmax(90px, 30%) 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.barName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ivory-dim);
+}
+
+.barTrack {
+  height: 14px;
+}
+
+.barFill {
+  height: 100%;
+  min-width: 2px;
+  background: var(--viz-bar);
+  border-radius: 0 4px 4px 0;
+}
+
+.barValue {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.barValue small {
+  color: var(--ivory-faint);
+  margin-left: 4px;
+}
+
+/* ── Data tables ── */
+
+.tableWrap {
+  overflow-x: auto;
+  max-height: 320px;
+  border: 1px solid var(--line-soft);
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dataTable th:first-child,
+.dataTable td:first-child {
+  text-align: left;
+}
+
+.dataTable thead th {
+  position: sticky;
+  top: 0;
+  background: var(--ground);
+  font-weight: 500;
+  color: var(--ivory-faint);
+}
+
+.facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 14px;
+}
+
+.facts dt {
+  color: var(--ivory-dim);
+}
+
+.facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Money summary: collected and refunded, the figures the owner reconciles against the bank. Net is the hero tile above. ── */
+
+.money {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+@media (min-width: 720px) {
+  .money {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.moneyItem {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 2px;
+  background: var(--ground);
+}
+
+.moneyItem dt {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+.moneyItem dd {
+  margin: 0;
+}
+
+.moneyValue {
+  font-size: clamp(28px, 3.2vw, 36px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ivory);
+}
+
+.moneyNote {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ivory-dim);
+}
+
+.moneyNote .swatch {
+  width: 9px;
+  height: 9px;
+  margin-right: 2px;
+}
+
+.moneyItem[data-tone="refund"] {
+  border-left-color: var(--orange);
+}
+
+.moneyItem[data-tone="refund"] .moneyValue {
+  color: var(--orange-hot);
+}

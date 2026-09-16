@@ -1,0 +1,409 @@
+/* Shared layout for owner pages: header, cards, forms, lists, tables, filters. */
+
+/* Reports (dashboard, customers) use the full console width; form-style pages add .narrow to keep lines readable. */
+.page {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.narrow {
+  max-width: 880px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 122;
+  letter-spacing: -0.02em;
+  margin: 4px 0 0;
+}
+
+.note,
+.muted {
+  font-size: 14.5px;
+  color: var(--ivory-dim);
+  max-width: 72ch;
+  margin: 0;
+}
+
+.muted {
+  color: var(--ivory-faint);
+}
+
+.card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--panel);
+  min-width: 0;
+  align-content: start;
+}
+
+.card h2 {
+  font-size: 19px;
+  font-weight: 800;
+  margin: 2px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Forms ── */
+
+.form {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  align-items: end;
+}
+
+.form label,
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.form label > span,
+.field > span,
+.label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+.form input,
+.form select,
+.input {
+  min-height: 48px;
+  width: 100%;
+  padding: 0 12px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory);
+  font: inherit;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+.form input:focus,
+.form select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.check {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  accent-color: var(--orange);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ── Messages ── */
+
+.message {
+  padding: 12px 14px;
+  border-radius: 2px;
+  font-size: 15px;
+  margin: 0;
+}
+
+.message[data-tone="ok"] {
+  border: 1px solid rgba(198, 242, 78, 0.4);
+  background: rgba(198, 242, 78, 0.07);
+}
+
+.message[data-tone="error"] {
+  border: 1px solid rgba(255, 107, 44, 0.5);
+  background: rgba(255, 107, 44, 0.08);
+}
+
+.message ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 14px;
+}
+
+.linkBox {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.linkBox code {
+  display: block;
+  padding: 10px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* ── Lists ── */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+  background: var(--ground);
+}
+
+.row[data-muted] {
+  opacity: 0.6;
+}
+
+.rowMain {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.rowMain b {
+  font-size: 15.5px;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ivory-faint);
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+  vertical-align: middle;
+}
+
+.badge[data-tone="warn"] {
+  border-color: rgba(255, 107, 44, 0.6);
+  color: var(--orange-hot);
+}
+
+.badge[data-tone="good"] {
+  border-color: rgba(198, 242, 78, 0.5);
+  color: var(--lime);
+}
+
+/* ── Filters ── */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chips a,
+.chips button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ivory-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chips a:hover,
+.chips button:hover {
+  color: var(--ivory);
+  border-color: var(--line-strong);
+}
+
+.chips [aria-current="true"],
+.chips [aria-pressed="true"] {
+  color: var(--ivory);
+  border-color: var(--orange);
+  background: rgba(255, 107, 44, 0.1);
+}
+
+/* ── Tables ── */
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  background: var(--ground);
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: top;
+}
+
+.table tr:last-child td {
+  border-bottom: 0;
+}
+
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 122;
+  letter-spacing: -0.02em;
+  margin: 4px 0 8px;
+}
+
+/* A search box with its options and button kept together, instead of spread across a wide page. */
+.searchBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px 16px;
+}
+
+.searchBar label {
+  display: grid;
+  gap: 6px;
+}
+
+.searchBar label:first-child {
+  flex: 0 1 420px;
+  min-width: min(100%, 240px);
+}
+
+.searchBar label > span {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+.searchBar input:not([type="checkbox"]) {
+  min-height: 48px;
+  width: 100%;
+  padding: 0 12px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory);
+  font: inherit;
+  font-size: 16px;
+}
+
+.searchBar input:not([type="checkbox"]):focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.searchBar .actions {
+  min-height: 48px;
+}
+
+
+/* Wide screens: the form beside its list (Team, Special dates). Headers, messages and action bars span both columns. */
+@media (min-width: 1200px) {
+  .narrow {
+    max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .narrow > :not(section):not(form) {
+    grid-column: 1 / -1;
+  }
+}

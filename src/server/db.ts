@@ -12,6 +12,10 @@ function createClient() {
     // TODO(launch): pin Supabase's CA certificate instead of skipping verification.
     ssl: { rejectUnauthorized: false },
     max: 5,
+    // Opening a TLS connection to the pooler costs over a second; pg's default closes idle ones after 10s,
+    // so every click after a short pause paid that again. Keep them for a few minutes instead.
+    idleTimeoutMillis: 5 * 60_000,
+    keepAlive: true,
   });
   return new PrismaClient({ adapter });
 }

@@ -125,3 +125,16 @@
   font-size: 13.5px;
   color: var(--ivory-dim);
 }
+
+
+/* Wide screens: the day's cards two across. Headers, messages and action bars span both columns. */
+@media (min-width: 1200px) {
+  .page {
+    max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .page > :not(section):not(form) {
+    grid-column: 1 / -1;
+  }
+}

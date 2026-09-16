@@ -1,0 +1,462 @@
+.page {
+  display: grid;
+  gap: 16px;
+  max-width: 880px;
+}
+
+.page h1 {
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 900;
+  font-variation-settings: "wdth" 122;
+  letter-spacing: -0.02em;
+  margin: 4px 0 8px;
+}
+
+.jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jump a {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+  text-decoration: none;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.jump a:hover {
+  color: var(--ivory);
+  border-color: var(--line-strong);
+}
+
+.note {
+  font-size: 14.5px;
+  color: var(--ivory-dim);
+  max-width: 70ch;
+  margin: 0;
+}
+
+/* ── Card ── */
+
+.card {
+  display: grid;
+  gap: 16px;
+  padding: 16px 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--panel);
+  scroll-margin-top: calc(var(--hdr) + 90px);
+}
+
+.cardHead h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 4px 0 6px;
+}
+
+.body {
+  display: grid;
+  gap: 18px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.unsaved {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+/* ── Fields ── */
+
+.grid {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .field[data-wide],
+  .readonly {
+    grid-column: 1 / -1;
+  }
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.field label,
+.readonly span,
+.ruleTimes span,
+.days legend {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+.field small,
+.readonly small,
+.ruleTimes small {
+  font-size: 13px;
+  color: var(--ivory-faint);
+}
+
+.field input,
+.dayTimes input,
+.ruleTimes input {
+  min-height: 48px;
+  width: 100%;
+  padding: 0 12px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory);
+  font: inherit;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+.field input:focus,
+.dayTimes input:focus,
+.ruleTimes input:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.field[data-invalid] input,
+.dayRow[data-invalid] input[type="time"],
+.ruleTimes[data-invalid] input {
+  border-color: var(--orange);
+}
+
+.field .error,
+.error {
+  color: var(--orange-hot);
+}
+
+.unitInput {
+  display: flex;
+  align-items: stretch;
+}
+
+.unitInput input {
+  flex: 1;
+  min-width: 0;
+}
+
+.unitInput span {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-left: 0;
+  border-radius: 0 2px 2px 0;
+  background: var(--well);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ivory-dim);
+  white-space: nowrap;
+}
+
+.readonly {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.readonly b {
+  font-family: var(--mono);
+  font-size: 15px;
+}
+
+/* ── Toggle ── */
+
+.toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.switch {
+  flex: none;
+  position: relative;
+  width: 46px;
+  height: 26px;
+  margin-top: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: 13px;
+  background: var(--ground);
+  transition: background 0.15s;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ivory-dim);
+  transition: transform 0.15s var(--ease);
+}
+
+.toggle input:checked + .switch {
+  background: var(--orange);
+  border-color: var(--orange);
+}
+
+.toggle input:checked + .switch::after {
+  transform: translateX(20px);
+  background: var(--orange-ink);
+}
+
+.toggle input:focus-visible + .switch {
+  outline: 2px solid var(--orange-hot);
+  outline-offset: 2px;
+}
+
+.toggleText {
+  display: grid;
+  gap: 2px;
+}
+
+.toggleText small {
+  font-size: 13.5px;
+  color: var(--ivory-dim);
+}
+
+/* ── Weekly hours ── */
+
+.week {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.dayRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+  background: var(--ground);
+}
+
+@media (min-width: 620px) {
+  .dayRow {
+    grid-template-columns: 170px 1fr;
+  }
+  .dayRow .error {
+    grid-column: 2;
+  }
+}
+
+.dayName {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.dayName input,
+.dayChip input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--orange);
+}
+
+.dayTimes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dayTimes input {
+  max-width: 150px;
+}
+
+.dayTimes span,
+.closed {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ivory-faint);
+}
+
+/* ── Pricing rules ── */
+
+.rules {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.rulesHead {
+  display: grid;
+  gap: 2px;
+}
+
+.rulesHead small {
+  font-size: 13px;
+  color: var(--ivory-faint);
+}
+
+.ruleList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.rule {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+  background: var(--ground);
+}
+
+.rule .field input,
+.rule .ruleTimes input {
+  background: var(--panel);
+}
+
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.days legend {
+  margin-bottom: 6px;
+}
+
+.days .error {
+  flex-basis: 100%;
+  font-size: 13px;
+}
+
+.dayChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.dayChip:has(input:checked) {
+  border-color: var(--orange);
+  background: rgba(255, 107, 44, 0.08);
+}
+
+.ruleTimes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 160px));
+  gap: 8px 12px;
+}
+
+.ruleTimes label {
+  display: grid;
+  gap: 6px;
+}
+
+.ruleTimes small {
+  grid-column: 1 / -1;
+}
+
+.ruleActions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Messages ── */
+
+.message {
+  padding: 12px 14px;
+  border-radius: 2px;
+  font-size: 15px;
+}
+
+.message p {
+  margin: 0;
+}
+
+.message[data-tone="ok"] {
+  border: 1px solid rgba(198, 242, 78, 0.4);
+  background: rgba(198, 242, 78, 0.07);
+}
+
+.message[data-tone="error"] {
+  border: 1px solid rgba(255, 107, 44, 0.5);
+  background: rgba(255, 107, 44, 0.08);
+}
+
+.stranded {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 14px;
+}
+
+.stranded b {
+  font-family: var(--mono);
+  margin-right: 6px;
+}
+
+
+/* Wide screens: settings sections two across. Headers, messages and action bars span both columns. */
+@media (min-width: 1200px) {
+  .page {
+    max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .page > :not(section):not(form) {
+    grid-column: 1 / -1;
+  }
+}

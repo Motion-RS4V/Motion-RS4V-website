@@ -168,6 +168,62 @@ export async function retryRefund(db: PrismaClient, gateway: PaymentGateway, inp
   return updated;
 }
 
+/**
+ * Asks Razorpay how pending online refunds are doing. The webhook normally reports this, but it can be missing
+ * (not registered yet, a lost delivery), and a refund would then stay "pending" forever.
+ * Oldest first, a few at a time; a lookup that fails is left for the next run.
+ */
+export async function syncPendingRefunds(
+  db: PrismaClient,
+  gateway: PaymentGateway,
+  input: { limit?: number; now?: Date } = {},
+): Promise<{ checked: number; processed: number; failed: number }> {
+  const now = input.now ?? new Date();
+  const pending = await db.refund.findMany({
+    where: { status: "PENDING", razorpayRefundId: { not: null }, payment: { method: "RAZORPAY", razorpayPaymentId: { not: null } } },
+    orderBy: { createdAt: "asc" },
+    take: input.limit ?? 25,
+    select: { id: true, amountPaise: true, razorpayRefundId: true, payment: { select: { id: true, bookingId: true, razorpayPaymentId: true } } },
+  });
+
+  const result = { checked: 0, processed: 0, failed: 0 };
+  for (const refund of pending) {
+    let remote;
+    try {
+      remote = await gateway.fetchRefund(refund.payment.razorpayPaymentId!, refund.razorpayRefundId!);
+    } catch (error) {
+      console.error("refund status lookup failed", refund.id, error);
+      continue;
+    }
+    result.checked++;
+    if (remote.status === "pending") continue;
+
+    const processed = remote.status === "processed";
+    // Only move a row that is still pending, so a webhook landing at the same moment isn't overwritten.
+    const { count } = await db.refund.updateMany({
+      where: { id: refund.id, status: "PENDING" },
+      data: { status: processed ? "PROCESSED" : "FAILED", processedAt: processed ? now : null },
+    });
+    if (count === 0) continue;
+    if (processed) {
+      result.processed++;
+    } else {
+      result.failed++;
+      await db.auditLog.create({
+        data: {
+          actorId: null,
+          action: "refund.failed",
+          entityType: "booking",
+          entityId: refund.payment.bookingId,
+          after: { refundId: refund.id, amountPaise: refund.amountPaise, error: "Razorpay reported the refund as failed" },
+        },
+      });
+    }
+    await syncPaymentRefundStatus(db, refund.payment.id);
+  }
+  return result;
+}
+
 /** Keeps a payment's status in line with its non-failed refunds. */
 export async function syncPaymentRefundStatus(db: PrismaClient, paymentId: string) {
   const payment = await db.payment.findUniqueOrThrow({

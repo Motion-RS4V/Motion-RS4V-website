@@ -26,6 +26,7 @@ export interface PaymentGateway {
   fetchPayment(paymentId: string): Promise<RazorpayPayment>;
   capturePayment(paymentId: string, amountPaise: number): Promise<RazorpayPayment>;
   refundPayment(paymentId: string, input: { amountPaise: number; notes: Record<string, string> }): Promise<RazorpayRefund>;
+  fetchRefund(paymentId: string, refundId: string): Promise<RazorpayRefund>;
 }
 
 export class RazorpayError extends Error {
@@ -67,6 +68,8 @@ export function razorpayGateway(keyId: string, keySecret: string): PaymentGatewa
       call<RazorpayPayment>("POST", `/payments/${encodeURIComponent(id)}/capture`, { amount: amountPaise, currency: "INR" }),
     refundPayment: (id, { amountPaise, notes }) =>
       call<RazorpayRefund>("POST", `/payments/${encodeURIComponent(id)}/refund`, { amount: amountPaise, speed: "normal", notes }),
+    fetchRefund: (paymentId, refundId) =>
+      call<RazorpayRefund>("GET", `/payments/${encodeURIComponent(paymentId)}/refunds/${encodeURIComponent(refundId)}`),
   };
 }
 

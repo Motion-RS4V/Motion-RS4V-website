@@ -3,25 +3,43 @@
 }
 
 .field {
+  position: relative;
   display: flex;
   gap: 8px;
 }
 
+.icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  width: 17px;
+  height: 17px;
+  transform: translateY(-50%);
+  color: var(--ivory-faint);
+  pointer-events: none;
+}
+
 .field input {
   flex: 1;
-  min-height: 46px;
-  padding: 0 14px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 14px 0 40px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 2px;
   color: var(--ivory);
   font: inherit;
-  font-size: 16px;
+  font-size: 15px;
+}
+
+.field input::placeholder {
+  color: var(--ivory-faint);
 }
 
 .field input:focus {
   outline: none;
   border-color: var(--orange);
+  background: var(--ground);
 }
 
 .results {

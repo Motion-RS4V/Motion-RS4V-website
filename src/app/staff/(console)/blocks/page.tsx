@@ -1,10 +1,10 @@
 import { BlocksView } from "@/components/staff/BlocksView";
 import { sessionLabels, utcToLocal } from "@/server/booking";
 import { db } from "@/server/db";
-import { loadSettings } from "@/server/settings";
+import { requestSettings } from "@/server/settings/request";
 
 export default async function BlocksPage() {
-  const settings = await loadSettings(db);
+  const settings = await requestSettings();
   const tz = settings.venue.timezone;
   const now = new Date();
 

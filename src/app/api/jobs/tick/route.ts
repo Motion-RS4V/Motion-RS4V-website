@@ -3,6 +3,7 @@ import { completeFinishedSessions, expireHolds, markNoShows } from "@/server/boo
 import { db } from "@/server/db";
 import { retryFailedEmails } from "@/server/email/send";
 import { jobsEnv } from "@/server/env";
+import { paymentGateway, syncPendingRefunds } from "@/server/payments";
 import { pruneRateLimits } from "@/server/rate-limit";
 
 /**
@@ -22,5 +23,6 @@ export async function POST(request: Request) {
   const sessionsCompleted = await completeFinishedSessions(db, now);
   const emailsRetried = await retryFailedEmails(db, now);
   const rateLimitRowsPruned = await pruneRateLimits(db, now);
-  return Response.json({ ok: true, expiredHolds, noShowSeats, sessionsCompleted, emailsRetried, rateLimitRowsPruned });
+  const refunds = await syncPendingRefunds(db, paymentGateway(), { now });
+  return Response.json({ ok: true, expiredHolds, noShowSeats, sessionsCompleted, emailsRetried, rateLimitRowsPruned, refunds });
 }

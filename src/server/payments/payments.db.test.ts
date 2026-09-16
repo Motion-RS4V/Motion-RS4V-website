@@ -4,12 +4,14 @@
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/server/db";
+import { loadSettings } from "@/server/settings";
 import { createBooking, localToUtc } from "@/server/booking";
 import { customerCancel, customerReschedule, sendManageLinks } from "@/server/manage/service";
 import { hashToken, resolveManageToken } from "@/server/manage/tokens";
 import { hitRateLimit } from "@/server/rate-limit";
 import { CheckoutError, finalizePayment, releaseCheckout, startCheckout } from "./checkout";
 import { fakeEmailProvider, fakeGateway } from "./fake-gateway";
+import { syncPendingRefunds } from "./refunds";
 
 const IST = "Asia/Kolkata";
 const DATE = "2099-07-20";
@@ -51,7 +53,12 @@ async function cleanup() {
   await db.rateLimitHit.deleteMany({ where: { key: { startsWith: "test:" } } });
 }
 
-beforeAll(cleanup);
+// The live base price, so owner price changes in the console don't break these expectations (test date is a Monday).
+let PRICE = 0;
+beforeAll(async () => {
+  await cleanup();
+  PRICE = (await loadSettings(db)).pricing.basePricePaise;
+});
 afterAll(async () => {
   await cleanup();
   await db.$disconnect();
@@ -64,13 +71,13 @@ beforeEach(() => {
 describe("checkout and payments (live database, fake Razorpay)", () => {
   it("confirms a paid booking once, stores the payment and emails a working manage link", async () => {
     const { started, result } = await paidBooking("18:00", ["track", "offroad"], "riya@rs4v.test");
-    expect(started.amountPaise).toBe(2 * 49_900);
+    expect(started.amountPaise).toBe(2 * PRICE);
     expect(result.outcome).toBe("CONFIRMED");
 
     const booking = await db.booking.findUniqueOrThrow({ where: { id: started.bookingId }, include: { payments: true } });
     expect(booking.status).toBe("CONFIRMED");
     expect(booking.contactEmail).toBe("riya@rs4v.test");
-    expect(booking.payments[0]).toMatchObject({ status: "CAPTURED", amountPaise: 99_800 });
+    expect(booking.payments[0]).toMatchObject({ status: "CAPTURED", amountPaise: 2 * PRICE });
 
     expect(mail.sent).toHaveLength(1);
     expect(mail.sent[0].to).toBe("riya@rs4v.test");
@@ -106,11 +113,11 @@ describe("checkout and payments (live database, fake Razorpay)", () => {
   it("refunds in full, exactly once, when the seats went while the customer was paying", async () => {
     const slow = await checkout("19:00", ["track", "track", "track", "track"]);
     const fast = await checkout("19:00", ["offroad", "offroad", "offroad", "offroad"], { now: plus(MORNING, 11) });
-    expect(fast.amountPaise).toBe(4 * 49_900);
+    expect(fast.amountPaise).toBe(4 * PRICE);
 
     const paymentId = gateway.pay(slow.orderId);
     const result = await finalizePayment(db, gateway, { orderId: slow.orderId, paymentId, now: plus(MORNING, 12) }, { emailProvider: mail });
-    expect(result).toMatchObject({ outcome: "REFUNDED_UNAVAILABLE", refundedPaise: 4 * 49_900 });
+    expect(result).toMatchObject({ outcome: "REFUNDED_UNAVAILABLE", refundedPaise: 4 * PRICE });
     expect(gateway.refunds).toHaveLength(1);
     expect((await db.payment.findFirstOrThrow({ where: { bookingId: slow.bookingId } })).status).toBe("REFUNDED");
     expect(mail.sent.map((m) => m.subject)).toEqual([expect.stringContaining("full refund")]);
@@ -125,7 +132,7 @@ describe("checkout and payments (live database, fake Razorpay)", () => {
     expect(await releaseCheckout(db, started.orderId)).toBe(true);
     expect((await db.booking.findUniqueOrThrow({ where: { id: started.bookingId } })).status).toBe("CANCELLED");
     const next = await checkout("19:15", ["track", "track", "track", "track"]);
-    expect(next.amountPaise).toBe(4 * 49_900);
+    expect(next.amountPaise).toBe(4 * PRICE);
     expect(await releaseCheckout(db, "order_unknown")).toBe(false);
   });
 
@@ -141,16 +148,35 @@ describe("checkout and payments (live database, fake Razorpay)", () => {
     const seats = await db.bookingSeat.findMany({ where: { bookingId: started.bookingId }, select: { id: true } });
 
     const first = await customerCancel(db, gateway, { bookingId: started.bookingId, seatIds: [seats[0].id], now: MORNING }, mail);
-    expect(first).toMatchObject({ bookingStatus: "CONFIRMED", cancelledSeats: 1, refundedPaise: 49_900 });
+    expect(first).toMatchObject({ bookingStatus: "CONFIRMED", cancelledSeats: 1, refundedPaise: PRICE });
     expect((await db.payment.findFirstOrThrow({ where: { bookingId: started.bookingId } })).status).toBe("PARTIALLY_REFUNDED");
 
     const rest = await customerCancel(db, gateway, { bookingId: started.bookingId, now: at("19:00") }, mail);
     expect(rest).toMatchObject({ bookingStatus: "CANCELLED", refundedPaise: 0 });
-    expect(gateway.refunds.map((r) => r.amount)).toEqual([49_900]);
+    expect(gateway.refunds.map((r) => r.amount)).toEqual([PRICE]);
     expect(mail.sent.slice(-2).map((m) => m.subject)).toEqual([
       expect.stringContaining("1 driver removed"),
       expect.stringContaining("Booking cancelled"),
     ]);
+  });
+
+  it("picks up a refund Razorpay finishes later, without the webhook", async () => {
+    gateway.refundStatus = "pending";
+    const { started } = await paidBooking("21:00", ["offroad"], "slowrefund@rs4v.test");
+    await customerCancel(db, gateway, { bookingId: started.bookingId, now: MORNING }, mail);
+
+    const refundRow = () => db.refund.findFirstOrThrow({ where: { payment: { bookingId: started.bookingId } }, select: { status: true, processedAt: true } });
+    expect((await refundRow()).status).toBe("PENDING");
+
+    // Still pending at Razorpay: nothing changes. (Real pending refunds elsewhere in the database can't be looked up by the fake and are skipped.)
+    await syncPendingRefunds(db, gateway, { now: plus(MORNING, 10) });
+    expect((await refundRow()).status).toBe("PENDING");
+
+    gateway.refunds.at(-1)!.status = "processed";
+    const done = await syncPendingRefunds(db, gateway, { now: plus(MORNING, 20) });
+    expect(done.processed).toBeGreaterThanOrEqual(1);
+    expect(await refundRow()).toEqual({ status: "PROCESSED", processedAt: plus(MORNING, 20) });
+    gateway.refundStatus = "processed";
   });
 
   it("moves a booking and emails the new time with a fresh link", async () => {

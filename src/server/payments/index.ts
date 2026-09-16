@@ -6,7 +6,7 @@ import { razorpayGateway, type PaymentGateway } from "./razorpay";
 export { CheckoutError, finalizePayment, releaseCheckout, startCheckout, type FinalizeResult, type StartedCheckout } from "./checkout";
 export { emailBookingCancelled, emailBookingRescheduled, manageUrl } from "./notifications";
 export { verifyCheckoutSignature, verifyWebhookSignature, type PaymentGateway } from "./razorpay";
-export { markRefundPaid, refundBooking, retryRefund, syncPaymentRefundStatus } from "./refunds";
+export { markRefundPaid, refundBooking, retryRefund, syncPaymentRefundStatus, syncPendingRefunds } from "./refunds";
 
 let gateway: PaymentGateway | undefined;
 

@@ -2,13 +2,20 @@ import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { DEFAULT_SETTINGS } from "./defaults";
 import { SETTINGS_KEYS, settingsSchemas, type Settings, type SettingsKey } from "./schema";
 
+export type SettingsIssue = { path: string; message: string };
+
 export class InvalidSettingsError extends Error {
+  readonly issues: string[];
+
   constructor(
     readonly key: SettingsKey,
-    readonly issues: string[],
+    /** Paths are relative to the group, e.g. "weeklyHours.mon.closesAt", so a form can mark the field. */
+    readonly fieldIssues: SettingsIssue[],
   ) {
+    const issues = fieldIssues.map((i) => `${i.path || key}: ${i.message}`);
     super(`Settings group "${key}" is invalid: ${issues.join("; ")}`);
     this.name = "InvalidSettingsError";
+    this.issues = issues;
   }
 }
 
@@ -23,7 +30,7 @@ function validate<K extends SettingsKey>(key: K, candidate: unknown): Settings[K
   if (!parsed.success) {
     throw new InvalidSettingsError(
       key,
-      parsed.error.issues.map((i) => `${i.path.join(".") || key}: ${i.message}`),
+      parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
     );
   }
   return parsed.data as Settings[K];

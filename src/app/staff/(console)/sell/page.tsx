@@ -1,12 +1,12 @@
 import { WalkInForm } from "@/components/staff/WalkInForm";
 import { isLocalDate, utcToLocal } from "@/server/booking";
 import { db } from "@/server/db";
-import { loadSettings } from "@/server/settings";
+import { requestSettings } from "@/server/settings/request";
 import { sellableSlots } from "@/server/staff/board";
 
 export default async function SellSeatPage(props: PageProps<"/staff/sell">) {
   const params = await props.searchParams;
-  const settings = await loadSettings(db);
+  const settings = await requestSettings();
   const tz = settings.venue.timezone;
   const start = typeof params.start === "string" ? new Date(params.start) : null;
   const startValid = start && !Number.isNaN(start.getTime());

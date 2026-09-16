@@ -1,28 +1,47 @@
+/* Console header: a top bar (brand · search · account) and a tab bar, both aligned with .staff-main's width. */
+
 .nav {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(11, 12, 14, 0.97);
+  background: rgba(11, 12, 14, 0.96);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
-  padding: 10px clamp(12px, 3vw, 24px) 12px;
-  padding-top: calc(10px + env(safe-area-inset-top, 0px));
-  display: grid;
-  gap: 10px;
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
-.row {
-  display: flex;
+.top,
+.tabsInner {
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-inline: clamp(14px, 3vw, 24px);
+}
+
+/* ── Top bar ── */
+
+.top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "brand search user";
   align-items: center;
-  gap: 12px 18px;
-  flex-wrap: wrap;
+  gap: 10px 24px;
+  min-height: 64px;
+  padding-block: 10px;
 }
 
 .brand {
+  grid-area: brand;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   font-family: var(--display);
   font-variation-settings: "wdth" 122;
   font-weight: 900;
-  font-size: 20px;
+  font-size: 22px;
   letter-spacing: 0.01em;
+  color: var(--ivory);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .brand i {
@@ -31,56 +50,50 @@
 }
 
 .brand small {
+  padding: 3px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ivory-faint);
-  margin-left: 6px;
-}
-
-.links {
-  display: flex;
-  gap: 4px;
-  flex: 1 1 auto;
-  overflow-x: auto;
-}
-
-.links a {
-  padding: 8px 12px;
-  border-radius: 2px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--ivory-dim);
-  text-decoration: none;
-  white-space: nowrap;
-  border: 1px solid transparent;
+  transform: translateY(-2px);
 }
 
-.links a:hover {
-  color: var(--ivory);
-  border-color: var(--line);
-}
-
-.links a[aria-current="page"] {
-  color: var(--ground);
-  background: var(--ivory);
+.search {
+  grid-area: search;
+  width: 100%;
+  max-width: 560px;
+  justify-self: center;
 }
 
 .user {
+  grid-area: user;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--well);
+  border: 1px solid var(--line-strong);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ivory);
+}
+
 .who {
   display: grid;
-  line-height: 1.2;
-  font-size: 13px;
-  text-align: right;
+  line-height: 1.25;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .who small {
@@ -88,5 +101,139 @@
   font-size: 9.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--orange);
+}
+
+.signOut {
+  min-height: 36px;
+  margin-left: 4px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ivory-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.signOut:hover:not(:disabled) {
+  color: var(--ivory);
+  border-color: var(--line-strong);
+}
+
+/* ── Tab bar ── */
+
+.tabs {
+  border-top: 1px solid var(--line-soft);
+}
+
+.tabsInner {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabsInner::-webkit-scrollbar {
+  display: none;
+}
+
+.group {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.group + .group {
+  margin-left: 14px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}
+
+.groupLabel {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--ivory-faint);
+  white-space: nowrap;
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ivory-dim);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tab::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: transparent;
+}
+
+.tab:hover {
+  color: var(--ivory);
+}
+
+.tab:hover::after {
+  background: var(--line-strong);
+}
+
+.tab[aria-current="page"] {
+  color: var(--ivory);
+}
+
+.tab[aria-current="page"]::after {
+  background: var(--orange);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--orange-hot);
+  outline-offset: -2px;
+}
+
+/* ── Narrow screens: search gets its own full-width row ── */
+
+@media (max-width: 860px) {
+  .top {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "brand user"
+      "search search";
+    min-height: 0;
+  }
+
+  .search {
+    max-width: none;
+  }
+
+  .user {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 520px) {
+  .who {
+    display: none;
+  }
 }

@@ -3,7 +3,7 @@ import { formatRupees } from "@/lib/format";
 import { addDays, shortDate } from "@/lib/venue-time";
 import { isLocalDate, utcToLocal } from "@/server/booking";
 import { db } from "@/server/db";
-import { loadSettings } from "@/server/settings";
+import { requestSettings } from "@/server/settings/request";
 import { getTakings } from "@/server/staff/takings";
 import styles from "@/components/staff/Takings.module.css";
 
@@ -17,7 +17,7 @@ const METHOD_LABEL: Record<string, string> = {
 
 export default async function TakingsPage(props: PageProps<"/staff/takings">) {
   const params = await props.searchParams;
-  const settings = await loadSettings(db);
+  const settings = await requestSettings();
   const today = utcToLocal(new Date(), settings.venue.timezone).date;
   const date = typeof params.date === "string" && isLocalDate(params.date) ? params.date : today;
   const takings = await getTakings(db, date);

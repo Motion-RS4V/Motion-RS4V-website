@@ -20,11 +20,13 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  await supabase.auth.getUser();
+  // getClaims refreshes an expiring session (writing new cookies) and verifies the token locally with the
+  // project's public signing key, instead of a ~130ms round trip to Supabase Auth on every click.
+  await supabase.auth.getClaims();
 
   return response;
 }
 
 export const config = {
-  matcher: ["/staff/:path*", "/api/staff/:path*"],
+  matcher: ["/staff/:path*", "/api/staff/:path*", "/api/owner/:path*"],
 };

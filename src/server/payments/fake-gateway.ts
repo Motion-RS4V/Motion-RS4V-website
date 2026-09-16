@@ -14,6 +14,8 @@ export function fakeGateway() {
     payments: typeof payments;
     refunds: typeof refunds;
     failNextOrder: boolean;
+    /** Status new refunds start in. Real Razorpay refunds usually start "pending". */
+    refundStatus: RazorpayRefund["status"];
     /** Simulates the customer paying an order. */
     pay(orderId: string, opts?: { status?: RazorpayPayment["status"]; amount?: number }): string;
   } = {
@@ -22,6 +24,7 @@ export function fakeGateway() {
     payments,
     refunds,
     failNextOrder: false,
+    refundStatus: "processed",
     async createOrder({ amountPaise, receipt }) {
       if (gateway.failNextOrder) {
         gateway.failNextOrder = false;
@@ -50,11 +53,16 @@ export function fakeGateway() {
     },
     async refundPayment(id, { amountPaise }) {
       const p = payments.get(id)!;
-      const refund: RazorpayRefund = { id: next("rfnd"), payment_id: id, amount: amountPaise, status: "processed" };
+      const refund: RazorpayRefund = { id: next("rfnd"), payment_id: id, amount: amountPaise, status: gateway.refundStatus };
       refunds.push(refund);
       p.amount_refunded = (p.amount_refunded ?? 0) + amountPaise;
       if (p.amount_refunded >= p.amount) p.status = "refunded";
-      return refund;
+      return { ...refund };
+    },
+    async fetchRefund(paymentId, refundId) {
+      const r = refunds.find((x) => x.id === refundId && x.payment_id === paymentId);
+      if (!r) throw new Error(`no fake refund ${refundId}`);
+      return { ...r };
     },
   };
   return gateway;

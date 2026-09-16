@@ -5,6 +5,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { cancelBooking, createBooking, getDayAvailability, localToUtc, previewCancellation } from "@/server/booking";
 import { db } from "@/server/db";
+import { loadSettings } from "@/server/settings";
 import { fakeGateway } from "@/server/payments/fake-gateway";
 import { markRefundPaid, refundBooking } from "@/server/payments/refunds";
 import { getDayBoard, getStaffBooking, searchBookings } from "./board";
@@ -17,6 +18,8 @@ const at = (time: string) => localToUtc(DATE, time, IST);
 const MORNING = at("09:00");
 
 let staffId: string;
+/** The live base price (test date is a Monday, clear of weekend rules). */
+let PRICE = 0;
 let n = 0;
 const phone = () => `+9199997${String(Date.now() % 10_000).padStart(4, "0")}${n++ % 10}`;
 
@@ -45,6 +48,7 @@ async function cleanup() {
 
 beforeAll(async () => {
   await cleanup();
+  PRICE = (await loadSettings(db)).pricing.basePricePaise;
   staffId = (await db.staffProfile.findFirstOrThrow({ where: { role: "STAFF" } })).id;
 });
 afterAll(async () => {
@@ -111,12 +115,12 @@ describe("staff console (live database)", () => {
     expect(booking.status).toBe("CONFIRMED");
 
     const payment = await db.payment.findFirstOrThrow({ where: { bookingId: booking.id } });
-    expect(payment).toMatchObject({ method: "CASH", status: "CAPTURED", amountPaise: 49_900, recordedById: staffId });
+    expect(payment).toMatchObject({ method: "CASH", status: "CAPTURED", amountPaise: PRICE, recordedById: staffId });
 
     const board = await getDayBoard(db, DATE, { now: at("11:59") });
     const slot = board.slots.find((s) => s.localTime === "12:00")!;
     expect(slot.sold).toBe(1);
-    expect(slot.bookings[0]).toMatchObject({ channel: "WALK_IN", duePaise: 0, paidPaise: 49_900 });
+    expect(slot.bookings[0]).toMatchObject({ channel: "WALK_IN", duePaise: 0, paidPaise: PRICE });
   });
 
   it("marks a no-show and gives the seat back", async () => {
@@ -245,14 +249,14 @@ describe("staff console (live database)", () => {
     await db.payment.updateMany({ where: { bookingId: upi.id }, data: { capturedAt: at("16:40") } });
 
     const after = await getTakings(db, DATE);
-    expect((after.lines.find((l) => l.method === "CASH")?.collectedPaise ?? 0) - cashBefore).toBe(49_900);
-    expect((after.lines.find((l) => l.method === "UPI_COUNTER")?.collectedPaise ?? 0) - upiBefore).toBe(99_800);
-    expect(after.cashInDrawerPaise - before.cashInDrawerPaise).toBe(49_900);
-    expect(after.counter.netPaise - before.counter.netPaise).toBe(149_700);
+    expect((after.lines.find((l) => l.method === "CASH")?.collectedPaise ?? 0) - cashBefore).toBe(PRICE);
+    expect((after.lines.find((l) => l.method === "UPI_COUNTER")?.collectedPaise ?? 0) - upiBefore).toBe(2 * PRICE);
+    expect(after.cashInDrawerPaise - before.cashInDrawerPaise).toBe(PRICE);
+    expect(after.counter.netPaise - before.counter.netPaise).toBe(3 * PRICE);
 
     // A cash refund handed back today comes straight off the drawer figure.
     await cancelBooking(db, { bookingId: cash.id, actor: { kind: "customer" }, now: at("16:21") });
-    const refund = await refundBooking(db, fakeGateway(), { bookingId: cash.id, amountPaise: 49_900, reason: "Customer cancellation", actorId: staffId });
+    const refund = await refundBooking(db, fakeGateway(), { bookingId: cash.id, amountPaise: PRICE, reason: "Customer cancellation", actorId: staffId });
 
     const withPending = await getTakings(db, DATE);
     expect(withPending.pendingDeskRefunds.map((r) => r.reference)).toContain(cash.reference);

@@ -21,14 +21,32 @@ export function StaffResetForm() {
   const clientRef = useRef<SupabaseClient | null>(null);
   const client = () => (clientRef.current ??= createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!));
 
+  // The code and token are single-use, so the check must run once even when React runs effects twice in development.
+  const checkRef = useRef<Promise<boolean> | null>(null);
+
   useEffect(() => {
-    // The link carries a one-time code (or a recovery session in the hash); turn it into a session.
-    const code = new URLSearchParams(window.location.search).get("code");
-    const supabase = client();
-    const finish = code
-      ? supabase.auth.exchangeCodeForSession(code).then(({ error }) => !error)
-      : supabase.auth.getSession().then(({ data }) => Boolean(data.session));
-    finish.then((valid) => setReady(valid ? "ok" : "invalid"));
+    // The link carries a one-time code, or a hashed token from an owner-issued setup link; turn it into a session.
+    if (!checkRef.current) {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const tokenHash = params.get("token_hash");
+      const supabase = client();
+      checkRef.current = tokenHash
+        ? supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" }).then(({ error }) => !error)
+        : code
+          ? supabase.auth.exchangeCodeForSession(code).then(({ error }) => !error)
+          : supabase.auth.getSession().then(({ data }) => Boolean(data.session));
+    }
+    let cancelled = false;
+    checkRef.current.then((valid) => {
+      if (cancelled) return;
+      setReady(valid ? "ok" : "invalid");
+      // Drop the used token from the address bar so a refresh doesn't show "expired".
+      if (valid) window.history.replaceState(null, "", window.location.pathname);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function submit(event: FormEvent) {

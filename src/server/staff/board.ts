@@ -57,13 +57,14 @@ export type Board = {
 /** Everything the desk needs for one day: sessions, who's booked, who's checked in, what's blocked. */
 export async function getDayBoard(db: PrismaClient, date: LocalDate, opts: { now?: Date } = {}): Promise<Board> {
   const now = opts.now ?? new Date();
-  const settings = await loadSettings(db);
+  const [settings, override] = await Promise.all([
+    loadSettings(db),
+    db.scheduleOverride.findUnique({
+      where: { date: new Date(`${date}T00:00:00.000Z`) },
+      select: { closed: true, opensAt: true, closesAt: true },
+    }),
+  ]);
   const tz = settings.venue.timezone;
-
-  const override = await db.scheduleOverride.findUnique({
-    where: { date: new Date(`${date}T00:00:00.000Z`) },
-    select: { closed: true, opensAt: true, closesAt: true },
-  });
   const hours = hoursForDate(settings.schedule, override, date);
   const slots = generateSlots(date, hours, settings.schedule.slotMinutes, tz);
 

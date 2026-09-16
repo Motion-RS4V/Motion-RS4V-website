@@ -34,7 +34,14 @@ export async function getTakings(db: PrismaClient, date: LocalDate): Promise<Tak
       select: { method: true, amountPaise: true },
     }),
     db.refund.findMany({
-      where: { status: "PROCESSED", processedAt: { gte: dayStart, lt: dayEnd } },
+      where: {
+        OR: [
+          // Online refunds count the day they're issued, even while Razorpay is still paying them out.
+          { status: { in: ["PENDING", "PROCESSED"] }, payment: { method: "RAZORPAY" }, createdAt: { gte: dayStart, lt: dayEnd } },
+          // Desk refunds count when the money is handed back.
+          { status: "PROCESSED", payment: { method: { not: "RAZORPAY" } }, processedAt: { gte: dayStart, lt: dayEnd } },
+        ],
+      },
       select: { amountPaise: true, payment: { select: { method: true } } },
     }),
     db.bookingSeat.findMany({

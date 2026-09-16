@@ -3,6 +3,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import type { StaffRole } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { serverEnv } from "@/server/env";
@@ -27,19 +28,25 @@ export async function supabaseServer() {
   });
 }
 
-/** The signed-in staff member, or null. A disabled account counts as signed out. */
-export async function getStaffSession(): Promise<StaffSession | null> {
+/**
+ * The signed-in staff member, or null. A disabled account counts as signed out.
+ * The login token is verified locally (signature and expiry) rather than by calling Supabase Auth, and the staff
+ * profile is read on every request, so turning an account off still takes effect straight away.
+ * Cached per request: the layout and the page share one lookup.
+ */
+export const getStaffSession = cache(async (): Promise<StaffSession | null> => {
   const supabase = await supabaseServer();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return null;
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+  if (!userId) return null;
 
   const profile = await db.staffProfile.findUnique({
-    where: { id: data.user.id },
+    where: { id: userId },
     select: { id: true, email: true, name: true, role: true, active: true },
   });
   if (!profile || !profile.active) return null;
   return { id: profile.id, email: profile.email, name: profile.name, role: profile.role };
-}
+});
 
 /** For pages: sends anyone without a staff account to the login screen. */
 export async function requireStaff(returnTo?: string): Promise<StaffSession> {
