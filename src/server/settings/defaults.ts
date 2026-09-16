@@ -9,6 +9,7 @@ const DAILY = { opensAt: "10:00", closesAt: "22:00" };
 export const DEFAULT_SETTINGS: Settings = {
   venue: {
     name: "Motion RS4V",
+    legalName: "",
     timezone: "Asia/Kolkata",
     address: "Zora The Mall, Raipur",
     mapsUrl: "",

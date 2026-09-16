@@ -1,0 +1,252 @@
+.updated {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+}
+
+/* ── Tabs between the three policies ── */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs a {
+  position: relative;
+  flex-shrink: 0;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--ivory-dim);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tabs a::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -1px;
+  height: 2px;
+  background: transparent;
+}
+
+.tabs a:hover {
+  color: var(--ivory);
+}
+
+.tabs a[aria-current="page"] {
+  color: var(--ivory);
+}
+
+.tabs a[aria-current="page"]::after {
+  background: var(--orange);
+}
+
+/* ── Contents + article ── */
+
+.layout {
+  display: grid;
+  gap: 32px;
+}
+
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: 240px minmax(0, 760px);
+    gap: 56px;
+    align-items: start;
+  }
+}
+
+.toc {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+@media (min-width: 960px) {
+  .toc {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  border-left: 1px solid var(--line);
+}
+
+.toc a {
+  display: block;
+  padding: 7px 0 7px 14px;
+  font-size: 14px;
+  color: var(--ivory-dim);
+  text-decoration: none;
+}
+
+.toc a:hover {
+  color: var(--ivory);
+}
+
+.prose {
+  display: grid;
+  gap: 40px;
+  min-width: 0;
+}
+
+.prose section {
+  display: grid;
+  gap: 14px;
+  scroll-margin-top: 24px;
+}
+
+.prose h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--orange);
+  letter-spacing: 0.08em;
+}
+
+.prose p,
+.prose li {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ivory-dim);
+  max-width: 68ch;
+}
+
+.prose strong {
+  color: var(--ivory);
+  font-weight: 600;
+}
+
+.prose ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.prose li::marker {
+  color: var(--orange);
+}
+
+.prose a {
+  color: var(--orange-hot);
+  text-underline-offset: 3px;
+}
+
+/* A key figure called out, e.g. the free-cancellation window. */
+.callout {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--orange);
+  border-radius: 2px;
+  background: var(--panel);
+}
+
+.callout b {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ivory);
+}
+
+.callout span {
+  font-size: 15px;
+  color: var(--ivory-dim);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.table th {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+  border-bottom-color: var(--line);
+}
+
+.table td {
+  color: var(--ivory-dim);
+}
+
+.table td:first-child {
+  color: var(--ivory);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
+}
+
+.contact dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.contact dl div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.contact dt {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+  padding-top: 3px;
+}
+
+.contact dd {
+  margin: 0;
+  color: var(--ivory);
+  overflow-wrap: anywhere;
+}

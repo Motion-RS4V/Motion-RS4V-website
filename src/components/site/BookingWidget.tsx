@@ -19,7 +19,8 @@ type Props = {
   slotMinutes: number;
 };
 
-const ART: Record<string, string> = { track: "/media/poster-car.jpg", offroad: "/media/poster-pan.jpg" };
+// Placeholder track art (AI track maps, cropped) until photos of the real circuits replace it.
+const ART: Record<string, string> = { track: "/media/placeholder-track-drift.jpg", offroad: "/media/placeholder-track-offroad.jpg" };
 
 export function BookingWidget({ experiences, maxSeats, timezone, bookingWindowDays, basePricePaise, slotMinutes }: Props) {
   const [counts, setCounts] = useState<SeatCounts>(() => (experiences[0] ? { [experiences[0].code]: 1 } : {}));

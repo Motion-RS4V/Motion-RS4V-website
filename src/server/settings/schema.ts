@@ -15,6 +15,8 @@ const dayHoursSchema = z
 
 export const venueSchema = z.object({
   name: z.string().min(1),
+  /** The registered business behind the venue, shown on the terms, privacy and refund pages. Empty means use `name`. */
+  legalName: z.string().max(120),
   timezone: z.string().min(1),
   address: z.string(),
   mapsUrl: z.union([z.url(), z.literal("")]),

@@ -12,6 +12,7 @@ export type PublicExperience = {
 export type SiteContent = {
   venue: {
     name: string;
+    legalName: string;
     timezone: string;
     address: string;
     mapsUrl: string;

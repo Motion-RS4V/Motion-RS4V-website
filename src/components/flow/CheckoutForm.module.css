@@ -393,3 +393,14 @@
 .change:hover {
   color: var(--orange);
 }
+
+/* Policy links open in a new tab so the half-filled checkout isn't lost. */
+.inlineLink {
+  color: var(--ivory);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.inlineLink:hover {
+  color: var(--orange-hot);
+}

@@ -64,8 +64,8 @@ export function SiteFooter({ content }: { content: SiteContent }) {
             <ul>
               <li><a href="#book">Book a Session</a></li>
               <li><Link href="/find-booking">Find My Booking</Link></li>
-              <li><a href="#faq">Safety &amp; Requirements</a></li>
-              <li><a href="#faq">Cancellation Policy</a></li>
+              <li><Link href="/terms#safety">Safety &amp; Requirements</Link></li>
+              <li><Link href="/refunds">Cancellation &amp; Refunds</Link></li>
             </ul>
           </div>
           <div>
@@ -90,7 +90,11 @@ export function SiteFooter({ content }: { content: SiteContent }) {
         </div>
         <div className={styles.legal}>
           <span>© {year} Motion RS4V. All rights reserved.</span>
-          <span>Terms · Privacy · Safety rules</span>
+          <nav className={styles.legalLinks} aria-label="Policies">
+            <Link href="/terms">Terms</Link>
+            <Link href="/refunds">Refunds</Link>
+            <Link href="/privacy">Privacy</Link>
+          </nav>
         </div>
       </div>
     </footer>

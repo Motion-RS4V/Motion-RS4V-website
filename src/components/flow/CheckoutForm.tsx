@@ -283,7 +283,21 @@ export function CheckoutForm(props: Props) {
           </ul>
           <label className={styles.check}>
             <input type="checkbox" required checked={terms} onChange={(e) => setTerms(e.target.checked)} />
-            <span>I agree to these booking and cancellation terms.</span>
+            <span>
+              I agree to the{" "}
+              <a className={styles.inlineLink} href="/terms" target="_blank" rel="noopener">
+                terms of booking
+              </a>{" "}
+              and the{" "}
+              <a className={styles.inlineLink} href="/refunds" target="_blank" rel="noopener">
+                cancellation and refund policy
+              </a>
+              , and I&apos;ve read the{" "}
+              <a className={styles.inlineLink} href="/privacy" target="_blank" rel="noopener">
+                privacy policy
+              </a>
+              .
+            </span>
           </label>
           <label className={styles.check}>
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
