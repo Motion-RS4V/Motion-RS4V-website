@@ -42,6 +42,11 @@ export const DEFAULT_SETTINGS: Settings = {
     maxReschedules: 1,
     noShowGraceMinutes: 5,
   },
+  kiosk: {
+    enabled: false,
+    paymentHoldMinutes: 3,
+    idleResetSeconds: 60,
+  },
   eligibility: {
     minAgeYears: 10,
     minHeightCm: 130,

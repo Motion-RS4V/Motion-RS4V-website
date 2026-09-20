@@ -166,6 +166,24 @@ describe("booking engine (live database)", () => {
     expect(walkIn.status).toBe("CONFIRMED");
   });
 
+  it("sells from the kiosk right up to the end of a running session, on a short hold", async () => {
+    const settings = await loadSettings(db);
+    const justStarted = plusMinutes(at("11:00"), 1);
+
+    // The website has closed this session; the screen at the counter has not.
+    expect(await codeOf(book("11:00", ["track"], { now: justStarted }))).toBe("SLOT_IN_PAST");
+
+    const kiosk = await book("11:00", ["track"], { channel: "KIOSK", now: justStarted });
+    expect(kiosk.status).toBe("PENDING_PAYMENT");
+    expect(kiosk.holdExpiresAt).toEqual(plusMinutes(justStarted, settings.kiosk.paymentHoldMinutes));
+
+    // Paying after the session has started still confirms: the customer is standing at the counter.
+    expect((await confirmHeldBooking(db, { bookingId: kiosk.id, now: plusMinutes(justStarted, 1) })).outcome).toBe("CONFIRMED");
+
+    // Once the session is over, the kiosk stops selling it too.
+    expect(await codeOf(book("11:00", ["track"], { channel: "KIOSK", now: at("11:15") }))).toBe("SLOT_IN_PAST");
+  });
+
   it("refuses sessions that can't be sold", async () => {
     expect(await codeOf(book("18:07", ["track"]))).toBe("SLOT_NOT_FOUND");
     expect(await codeOf(book("09:30", ["track"]))).toBe("SLOT_NOT_FOUND"); // before opening

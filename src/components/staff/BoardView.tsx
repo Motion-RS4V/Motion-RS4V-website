@@ -34,7 +34,7 @@ function BookingRow({ booking }: { booking: BoardBooking }) {
         })}
       </span>
       <span className={styles.bookingFoot}>
-        {booking.channel === "WALK_IN" ? "Walk-in" : booking.channel === "PHONE" ? "Phone" : "Online"}
+        {booking.channel === "WALK_IN" ? "Walk-in" : booking.channel === "PHONE" ? "Phone" : booking.channel === "KIOSK" ? "Kiosk" : "Online"}
         {booking.duePaise > 0 ? ` · ${formatRupees(booking.duePaise)} due` : " · paid"}
         {waiting > 0 ? ` · ${waiting} to check in` : ""}
       </span>

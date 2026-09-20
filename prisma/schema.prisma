@@ -38,6 +38,7 @@ enum BookingChannel {
   ONLINE
   WALK_IN
   PHONE
+  KIOSK // self-service screen at the counter: pays online, sells like a walk-in
 
   @@map("booking_channel")
 }
@@ -250,6 +251,7 @@ model StaffProfile {
   refundsIssued   Refund[]    @relation("RefundCreatedBy")
   blocksCreated   SlotBlock[]
   auditEntries    AuditLog[]
+  kioskDevices    KioskDevice[] @relation("KioskDevicePairedBy")
 
   @@map("staff_profiles")
 }
@@ -409,6 +411,22 @@ model ManageToken {
 
   @@index([bookingId])
   @@map("manage_tokens")
+}
+
+/// A paired self-service screen. /kiosk is a public URL, so a screen must be paired by staff
+/// before it can sell; the cookie it holds is stored here hashed, like a manage token.
+model KioskDevice {
+  id         String    @id @default(uuid()) @db.Uuid
+  label      String // "Counter screen", so the owner can tell two apart
+  tokenHash  String    @unique @map("token_hash")
+  pairedById String?   @map("paired_by_id") @db.Uuid
+  lastSeenAt DateTime? @map("last_seen_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pairedBy StaffProfile? @relation("KioskDevicePairedBy", fields: [pairedById], references: [id])
+
+  @@map("kiosk_devices")
 }
 
 // ───────────────────────────── Messaging ─────────────────────────────

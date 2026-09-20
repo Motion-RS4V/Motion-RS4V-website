@@ -115,7 +115,7 @@ export function StaffBookingView({ booking }: { booking: StaffBooking }) {
           </span>
           {booking.contactEmail && <span className={styles.email}>{booking.contactEmail}</span>}
           <span className="tel">
-            {booking.channel === "WALK_IN" ? "Walk-in" : booking.channel === "PHONE" ? "Phone booking" : "Booked online"}
+            {booking.channel === "WALK_IN" ? "Walk-in" : booking.channel === "PHONE" ? "Phone booking" : booking.channel === "KIOSK" ? "Booked on the kiosk" : "Booked online"}
             {booking.createdBy ? ` · by ${booking.createdBy.name}` : ""}
           </span>
         </div>

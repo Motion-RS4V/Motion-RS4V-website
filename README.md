@@ -2,7 +2,7 @@
 
 Booking site and venue console for Motion RS4V, a remote-driven FPV car circuit at Zora The Mall, Raipur.
 
-**Stack:** Next.js 16 · TypeScript · Supabase (Postgres, Auth) · Prisma 7 · Razorpay · Resend (email)
+**Stack:** Next.js 16 · TypeScript · Supabase (Postgres, Auth) · Prisma 7 · Razorpay · Resend or Amazon SES (email)
 
 ## Setup
 
@@ -25,6 +25,7 @@ Booking site and venue console for Motion RS4V, a remote-driven FPV car circuit 
 | `npm run db:seed` | Seed defaults. Safe to re-run; never overwrites owner changes |
 | `npm run db:check-rls` | Fail if any table is readable through Supabase's public API |
 | `npm run db:studio` | Browse the database |
+| `npm run email:test -- you@example.com` | Send one real email through the configured provider |
 
 ## Rules that keep the system honest
 
@@ -51,7 +52,7 @@ src/server/booking/       booking engine: slots, pricing, capacity, policy, crea
 src/server/supabase/      Supabase admin client (server only)
 src/server/site/          public page content from settings (server only)
 src/server/payments/      Razorpay client, checkout, payment finalisation, refunds, booking emails
-src/server/email/         email templates, providers (resend | console | ses later), send log + retries
+src/server/email/         email templates, providers (resend | ses | console), send log + retries
 src/server/manage/        private manage links (hashed tokens), manage view, cancel/move, Find My Booking
 src/server/staff/         staff session + roles, today board, auto rig/car assignment, desk operations
 src/proxy.ts              refreshes the staff login session on /staff requests
@@ -62,7 +63,8 @@ src/app/api/checkout/     hold seats + Razorpay order; /verify confirms; /releas
 src/app/api/razorpay/     webhook (needs RAZORPAY_WEBHOOK_SECRET and a public URL)
 src/app/api/manage/       cancel (GET preview, POST) and reschedule for a manage link
 src/app/api/jobs/tick     housekeeping for a scheduler: expire holds, no-shows, completed sessions, email retries
-src/app/staff/            venue console: login, board, booking detail, walk-ins, fleet, blocks
+src/app/staff/            venue console: login, board, booking detail, walk-ins, fleet, blocks, kiosk screens
+src/app/kiosk/            self-service screen at the counter (paired device only)
 src/app/api/staff/        console login/logout, search and one endpoint for all desk actions
 src/app/                  Next.js routes
 public/media/             trimmed clips, posters and venue images

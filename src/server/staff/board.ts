@@ -329,10 +329,10 @@ export async function getStaffBooking(db: PrismaClient, id: string) {
   };
 }
 
-/** Sessions someone can still be sold a seat in today, for the walk-in screen. */
-export async function sellableSlots(db: PrismaClient, date: LocalDate, now = new Date()) {
+/** Sessions someone can still be sold a seat in today, for the walk-in screen and the kiosk. */
+export async function sellableSlots(db: PrismaClient, date: LocalDate, now = new Date(), channel: "WALK_IN" | "KIOSK" = "WALK_IN") {
   const { getDayAvailability } = await import("@/server/booking");
-  const day = await getDayAvailability(db, date, { now, channel: "WALK_IN" });
+  const day = await getDayAvailability(db, date, { now, channel });
   return day.slots
     .filter((s) => s.bookable)
     .map((s) => ({

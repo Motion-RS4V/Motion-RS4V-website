@@ -53,12 +53,12 @@ const BLOCKER_ERRORS: Record<SaleBlocker, BookingErrorCode> = {
 
 /**
  * Online: until `onlineCutoffMinutes` before the start, and no further ahead than the booking window.
- * Phone (staff): until the start. Walk-in (staff): until the slot ends, so seats freed by no-shows can still be sold;
- * the staff console shows how much drive time is left.
+ * Phone (staff): until the start. Walk-in (staff) and kiosk (the screen at the counter): until the slot ends,
+ * so seats freed by no-shows can still be sold; both customer and staff are standing in the venue.
  */
 function saleBlocker(slot: Slot, channel: BookingChannel, settings: Settings, now: Date): SaleBlocker | null {
   const { schedule } = settings;
-  if (channel === "WALK_IN") return now >= slot.end ? "PAST" : null;
+  if (channel === "WALK_IN" || channel === "KIOSK") return now >= slot.end ? "PAST" : null;
   if (now >= slot.start) return "PAST";
   if (channel === "PHONE") return null;
   if (now > addMinutes(slot.start, -schedule.onlineCutoffMinutes)) return "ONLINE_CLOSED";
@@ -212,13 +212,16 @@ export async function createBooking(db: Db, input: CreateBookingInput): Promise<
       select: { id: true },
     });
 
-    const online = input.channel === "ONLINE";
+    // Paid online, so the seats are held rather than confirmed. The kiosk holds for less time:
+    // someone is waiting behind them and the session may be minutes away.
+    const prepaid = input.channel === "ONLINE" || input.channel === "KIOSK";
+    const holdMinutes = input.channel === "KIOSK" ? settings.kiosk.paymentHoldMinutes : settings.policy.paymentHoldMinutes;
     const booking = await tx.booking.create({
       data: {
         reference: await uniqueReference(tx),
         customerId: customer.id,
         channel: input.channel,
-        status: online ? "PENDING_PAYMENT" : "CONFIRMED",
+        status: prepaid ? "PENDING_PAYMENT" : "CONFIRMED",
         slotStart: slot.start,
         slotEnd: slot.end,
         seatCount: input.seats.length,
@@ -226,8 +229,8 @@ export async function createBooking(db: Db, input: CreateBookingInput): Promise<
         subtotalPaise: totals.subtotalPaise,
         totalPaise: totals.totalPaise,
         policySnapshot: snapshotPolicy(settings.policy),
-        holdExpiresAt: online ? addMinutes(now, settings.policy.paymentHoldMinutes) : null,
-        confirmedAt: online ? null : now,
+        holdExpiresAt: prepaid ? addMinutes(now, holdMinutes) : null,
+        confirmedAt: prepaid ? null : now,
         ...input.attribution,
         contactEmail: email,
         termsAcceptedAt: input.termsAcceptedAt ?? null,

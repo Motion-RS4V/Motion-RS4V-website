@@ -20,6 +20,7 @@ const OWNER_LINKS = [
   { href: "/staff/customers", label: "Customers" },
   { href: "/staff/special-dates", label: "Special dates" },
   { href: "/staff/team", label: "Team" },
+  { href: "/staff/kiosk", label: "Kiosk" },
   { href: "/staff/activity", label: "Activity" },
   { href: "/staff/settings", label: "Settings" },
 ];

@@ -21,7 +21,7 @@ const PRESETS = [
   { key: "90", label: "90 days", days: 90 },
 ];
 const MAX_DAYS = 366;
-const CHANNEL_LABEL: Record<string, string> = { ONLINE: "Online", WALK_IN: "Walk-in", PHONE: "Phone" };
+const CHANNEL_LABEL: Record<string, string> = { ONLINE: "Online", WALK_IN: "Walk-in", PHONE: "Phone", KIOSK: "Kiosk" };
 
 const pct = (n: number) => (n > 0 && n < 0.005 ? "<1%" : `${Math.round(n * 100)}%`);
 

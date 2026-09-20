@@ -6,6 +6,7 @@ import { handleRouteError, jsonError, jsonOk, readJson } from "@/server/http";
 import { OwnerError, ScheduleConflictError } from "@/server/owner/errors";
 import { createCar, createRig, moveRig, updateCar, updateRig } from "@/server/owner/fleet";
 import { removeOverride, saveOverride } from "@/server/owner/overrides";
+import { createKioskDevice, revokeKioskDevice } from "@/server/kiosk/devices";
 import { addStaff, resetStaffPassword, updateStaff } from "@/server/owner/staff-accounts";
 import { staffApiSession } from "@/server/staff/session";
 
@@ -30,6 +31,9 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("staff-add"), email: z.email({ error: "Enter a valid email." }).max(120), name: z.string().trim().min(1, "Enter their name.").max(80), role }),
   z.object({ action: z.literal("staff-update"), staffId: uuid, name: z.string().trim().min(1).max(80).optional(), role: role.optional(), active: z.boolean().optional() }),
   z.object({ action: z.literal("staff-reset"), staffId: uuid }),
+
+  z.object({ action: z.literal("kiosk-add"), label }),
+  z.object({ action: z.literal("kiosk-revoke"), deviceId: uuid }),
 ]);
 
 export async function POST(request: Request) {
@@ -69,6 +73,13 @@ export async function POST(request: Request) {
         return jsonOk(await addStaff(db, { ...body, actorId }));
       case "staff-update":
         return jsonOk(await updateStaff(db, { ...body, actorId }));
+      case "kiosk-add":
+        return jsonOk(await createKioskDevice(db, { label: body.label, actorId }));
+
+      case "kiosk-revoke":
+        await revokeKioskDevice(db, { deviceId: body.deviceId, actorId });
+        return jsonOk({ ok: true });
+
       case "staff-reset":
         return jsonOk({ setupLink: await resetStaffPassword(db, { staffId: body.staffId, actorId }) });
     }

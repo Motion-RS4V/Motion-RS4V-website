@@ -81,6 +81,15 @@ export const policySchema = z.object({
   noShowGraceMinutes: wholeMinutes,
 });
 
+/** The self-service screen at the counter. It sells like a walk-in but takes payment online. */
+export const kioskSchema = z.object({
+  enabled: z.boolean(),
+  /** Shorter than the website's hold: someone is waiting behind them, and the session may be minutes away. */
+  paymentHoldMinutes: z.number().int().min(1).max(30),
+  /** Back to the first screen after this long untouched, clearing what the last customer entered. */
+  idleResetSeconds: z.number().int().min(15).max(600),
+});
+
 export const eligibilitySchema = z.object({
   minAgeYears: wholeMinutes,
   minHeightCm: wholeMinutes,
@@ -91,6 +100,7 @@ export const settingsSchemas = {
   schedule: scheduleSchema,
   pricing: pricingSchema,
   policy: policySchema,
+  kiosk: kioskSchema,
   eligibility: eligibilitySchema,
 } as const;
 

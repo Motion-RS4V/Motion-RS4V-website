@@ -29,13 +29,15 @@ export type StartedCheckout = {
 /**
  * Holds the seats (PENDING_PAYMENT) and opens a Razorpay order for the server-computed total.
  * If Razorpay can't create the order, the hold is released straight away.
+ * `channel` is ONLINE for the website and KIOSK for the screen at the counter, which sells later
+ * into a session and holds seats for less time.
  */
 export async function startCheckout(
   db: PrismaClient,
   gateway: PaymentGateway,
-  input: Omit<CreateBookingInput, "channel" | "staffId">,
+  input: Omit<CreateBookingInput, "channel" | "staffId"> & { channel?: "ONLINE" | "KIOSK" },
 ): Promise<StartedCheckout> {
-  const booking = await createBooking(db, { ...input, channel: "ONLINE", staffId: null });
+  const booking = await createBooking(db, { ...input, channel: input.channel ?? "ONLINE", staffId: null });
 
   let order;
   try {
