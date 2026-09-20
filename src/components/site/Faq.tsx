@@ -35,7 +35,9 @@ export function Faq({ content }: { content: SiteContent }) {
     },
     {
       q: "How much does it cost, and how do I pay?",
-      a: `${content.hasPriceRules ? "From " : ""}${formatRupees(content.basePricePaise)} per person. Pay online by UPI, card or wallet when you book. Walk-ins pay at the desk.`,
+      a: `${content.hasPriceRules ? "From " : ""}${formatRupees(content.basePricePaise)} per person. ${
+        content.onlineBookingEnabled ? "Pay online by UPI, card or wallet when you book. Walk-ins pay at the desk." : "Book on WhatsApp or at the desk, and pay at the venue."
+      }`,
     },
     {
       q: "Can I cancel or change my booking?",

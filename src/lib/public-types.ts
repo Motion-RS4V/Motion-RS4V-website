@@ -28,6 +28,7 @@ export type SiteContent = {
   arriveEarlyMinutes: number;
   maxSeatsPerBooking: number;
   bookingWindowDays: number;
+  onlineBookingEnabled: boolean;
   freeCancelHours: number;
   minAgeYears: number;
   minHeightCm: number;

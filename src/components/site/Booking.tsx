@@ -1,9 +1,11 @@
 import { formatRupees } from "@/lib/format";
+import { whatsappUrl } from "@/lib/links";
 import type { SiteContent } from "@/lib/public-types";
 import styles from "./Booking.module.css";
 import { BookingWidget } from "./BookingWidget";
 
 export function Booking({ content }: { content: SiteContent }) {
+  const whatsapp = whatsappUrl(content.venue.whatsappNumber);
   return (
     <section className="section" id="book">
       <div className="wrap">
@@ -25,14 +27,38 @@ export function Booking({ content }: { content: SiteContent }) {
           </div>
         </div>
 
-        <BookingWidget
-          experiences={content.experiences}
-          maxSeats={content.maxSeatsPerBooking}
-          timezone={content.venue.timezone}
-          bookingWindowDays={content.bookingWindowDays}
-          basePricePaise={content.basePricePaise}
-          slotMinutes={content.slotMinutes}
-        />
+        {content.onlineBookingEnabled ? (
+          <BookingWidget
+            experiences={content.experiences}
+            maxSeats={content.maxSeatsPerBooking}
+            timezone={content.venue.timezone}
+            bookingWindowDays={content.bookingWindowDays}
+            basePricePaise={content.basePricePaise}
+            slotMinutes={content.slotMinutes}
+          />
+        ) : (
+          <div className={styles.offline}>
+            <div>
+              <span className="tel tel-o">Online booking opens soon</span>
+              <p>
+                {whatsapp ? "Message us on WhatsApp to book a session, or walk in" : "Walk in"} to {content.venue.address} and ask at the desk.
+                You pay at the venue.
+              </p>
+            </div>
+            <div className={styles.offlineLinks}>
+              {whatsapp && (
+                <a className="btn btn-primary" href={whatsapp} target="_blank" rel="noreferrer">
+                  Book on WhatsApp <span className="arr">→</span>
+                </a>
+              )}
+              {content.venue.mapsUrl && (
+                <a className="btn btn-ghost" href={content.venue.mapsUrl} target="_blank" rel="noreferrer">
+                  Get directions <span className="arr">→</span>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -3,6 +3,7 @@ import { db } from "@/server/db";
 import { clientIp, deviceType, handleRouteError, jsonError, jsonOk, readJson } from "@/server/http";
 import { CheckoutError, paymentGateway, startCheckout } from "@/server/payments";
 import { hitRateLimit } from "@/server/rate-limit";
+import { loadSettings } from "@/server/settings";
 
 const optionalText = (max: number) => z.string().trim().max(max).nullish();
 
@@ -36,6 +37,11 @@ export async function POST(request: Request) {
   const limit = await hitRateLimit(db, `checkout:${clientIp(request.headers)}`, 8, 600);
   if (!limit.allowed) {
     return jsonError(429, "Too many booking attempts from this connection. Please wait a few minutes and try again.");
+  }
+
+  // Checked here rather than in the booking engine, so the engine's database tests don't depend on the owner's switch.
+  if (!(await loadSettings(db)).policy.onlineBookingEnabled) {
+    return jsonError(403, "Online booking is paused right now. Message us on WhatsApp or ask at the desk to book.", { code: "ONLINE_BOOKING_OFF" });
   }
 
   const parsed = await readJson(request, bodySchema);

@@ -16,6 +16,16 @@ export function PolicySettings({ initial }: { initial: Settings["policy"] }) {
     >
       {({ draft, set }) => (
         <>
+          <Toggle
+            label="Online booking"
+            hint={
+              draft.onlineBookingEnabled
+                ? "Customers can pick a session and pay on the website."
+                : "The website shows WhatsApp and walk-in details instead. Staff can still sell seats, and existing bookings can still be changed or cancelled."
+            }
+            checked={draft.onlineBookingEnabled}
+            onChange={(v) => set("onlineBookingEnabled", v)}
+          />
           <div className={styles.grid}>
             <NumberField label="Most seats per booking" unit="seats" path="maxSeatsPerBooking" min={1} value={draft.maxSeatsPerBooking} onChange={(v) => set("maxSeatsPerBooking", v)} />
             <NumberField label="Payment hold" unit="min" path="paymentHoldMinutes" min={1} hint="Seats stay reserved this long while the customer pays." value={draft.paymentHoldMinutes} onChange={(v) => set("paymentHoldMinutes", v)} />

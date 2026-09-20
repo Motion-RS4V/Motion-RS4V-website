@@ -32,6 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
     rules: [],
   },
   policy: {
+    onlineBookingEnabled: true,
     maxSeatsPerBooking: 4,
     limitSeatsByReadyCars: true,
     paymentHoldMinutes: 10,

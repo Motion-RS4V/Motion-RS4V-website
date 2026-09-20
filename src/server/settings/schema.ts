@@ -68,6 +68,8 @@ export const pricingSchema = z.object({
 });
 
 export const policySchema = z.object({
+  /** Off stops new online bookings (checkout and the site's session picker). Staff sales and existing bookings carry on. */
+  onlineBookingEnabled: z.boolean(),
   maxSeatsPerBooking: z.number().int().min(1),
   /** When on, a slot can't sell more seats for a track than there are Ready cars for that track. */
   limitSeatsByReadyCars: z.boolean(),

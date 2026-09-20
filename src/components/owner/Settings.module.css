@@ -1,7 +1,9 @@
 .page {
   display: grid;
   gap: 16px;
+  width: 100%;
   max-width: 880px;
+  margin-inline: auto;
 }
 
 .page h1 {
@@ -84,25 +86,21 @@
 
 /* ── Fields ── */
 
+/* One field per row: label, input and hint read top to bottom. */
 .grid {
   display: grid;
-  gap: 14px;
-}
-
-@media (min-width: 720px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .field[data-wide],
-  .readonly {
-    grid-column: 1 / -1;
-  }
+  gap: 18px;
 }
 
 .field {
   display: grid;
   gap: 6px;
   align-content: start;
+  max-width: 520px;
+}
+
+.field[data-wide] {
+  max-width: none;
 }
 
 .field label,
@@ -448,15 +446,3 @@
   margin-right: 6px;
 }
 
-
-/* Wide screens: settings sections two across. Headers, messages and action bars span both columns. */
-@media (min-width: 1200px) {
-  .page {
-    max-width: none;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-  .page > :not(section):not(form) {
-    grid-column: 1 / -1;
-  }
-}

@@ -31,6 +31,9 @@ export default async function BookPage(props: PageProps<"/book">) {
     loadSettings(db),
     db.experience.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" }, select: { code: true, name: true, trackLabel: true } }),
   ]);
+  if (!settings.policy.onlineBookingEnabled) {
+    return unavailable("Online booking is paused.", "Message us on WhatsApp to book a session, or walk in and ask at the desk.");
+  }
   const seats = totalSeats(counts);
   const byCode = new Map(experiences.map((e) => [e.code, e]));
   if (seats > settings.policy.maxSeatsPerBooking || Object.keys(counts).some((code) => !byCode.has(code))) {

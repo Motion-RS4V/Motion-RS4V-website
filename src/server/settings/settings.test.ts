@@ -20,6 +20,13 @@ describe("settings", () => {
     expect(s.pricing.gstRatePercent).toBe(DEFAULT_SETTINGS.pricing.gstRatePercent);
   });
 
+  it("keeps online booking on for a venue saved before the switch existed", () => {
+    const older: Partial<typeof DEFAULT_SETTINGS.policy> = { ...DEFAULT_SETTINGS.policy };
+    delete older.onlineBookingEnabled;
+    expect(resolveSettings([{ key: "policy", value: older }]).policy.onlineBookingEnabled).toBe(true);
+    expect(resolveSettings([{ key: "policy", value: { ...older, onlineBookingEnabled: false } }]).policy.onlineBookingEnabled).toBe(false);
+  });
+
   it("keeps a closed day closed", () => {
     const weeklyHours = { ...DEFAULT_SETTINGS.schedule.weeklyHours, mon: null };
     const s = resolveSettings([{ key: "schedule", value: { weeklyHours } }]);

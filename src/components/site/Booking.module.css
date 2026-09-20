@@ -44,3 +44,31 @@
   font-weight: 500;
   margin-bottom: 0.4em;
 }
+
+/* Shown in place of the session picker while the owner has online booking switched off. */
+.offline {
+  display: grid;
+  gap: 24px;
+  padding: clamp(24px, 4vw, 40px);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--panel);
+}
+
+.offline p {
+  margin: 10px 0 0;
+  max-width: 56ch;
+}
+
+.offlineLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .offline {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}

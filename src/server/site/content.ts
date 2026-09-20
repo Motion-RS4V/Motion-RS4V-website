@@ -24,6 +24,7 @@ export async function getSiteContent(): Promise<SiteContent> {
     arriveEarlyMinutes: settings.schedule.arriveEarlyMinutes,
     maxSeatsPerBooking: settings.policy.maxSeatsPerBooking,
     bookingWindowDays: settings.schedule.bookingWindowDays,
+    onlineBookingEnabled: settings.policy.onlineBookingEnabled,
     freeCancelHours: settings.policy.freeCancelHours,
     minAgeYears: settings.eligibility.minAgeYears,
     minHeightCm: settings.eligibility.minHeightCm,
