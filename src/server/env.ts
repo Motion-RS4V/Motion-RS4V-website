@@ -33,6 +33,12 @@ const emailSchema = z.object({
   EMAIL_PROVIDER: z.enum(["resend", "ses", "console"]).default("console"),
   RESEND_API_KEY: z.string().optional().default(""),
   EMAIL_FROM: z.string().optional().default(""),
+  // Amazon SES. The region must be the one the sending domain was verified in.
+  SES_REGION: z.string().optional().default("ap-south-1"),
+  SES_ACCESS_KEY_ID: z.string().optional().default(""),
+  SES_SECRET_ACCESS_KEY: z.string().optional().default(""),
+  /** Optional SES configuration set, for bounce and complaint tracking. */
+  SES_CONFIGURATION_SET: z.string().optional().default(""),
 });
 
 const jobsSchema = z.object({

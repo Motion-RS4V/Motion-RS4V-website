@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { db } from "@/server/db";
-import { serverEnv } from "@/server/env";
+import { emailProvider, senderAddress } from "@/server/email/providers";
+import { renderStaffResetEmail } from "@/server/email/templates";
+import { emailEnv } from "@/server/env";
 import { clientIp, jsonError, jsonOk, readJson } from "@/server/http";
+import { passwordSetupLink } from "@/server/owner/staff-accounts";
 import { hitRateLimit } from "@/server/rate-limit";
-import { supabaseServer } from "@/server/staff/session";
 
 const bodySchema = z.object({ email: z.email({ error: "Enter your work email." }) });
 
@@ -17,12 +19,18 @@ export async function POST(request: Request) {
   const parsed = await readJson(request, bodySchema);
   if (!parsed.ok) return parsed.response;
 
-  const profile = await db.staffProfile.findUnique({ where: { email: parsed.data.email.toLowerCase() }, select: { active: true } });
+  const email = parsed.data.email.toLowerCase();
+  const profile = await db.staffProfile.findUnique({ where: { email }, select: { active: true } });
   if (profile?.active) {
-    const supabase = await supabaseServer();
-    const redirectTo = `${serverEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/staff/reset`;
-    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, { redirectTo });
-    if (error) console.error("staff password reset failed", error.message);
+    // Same hashed-token link the owner hands out from Team, rather than Supabase's own email:
+    // that one only works in the browser that asked for it, and mail scanners can use it up before the person clicks.
+    try {
+      const env = emailEnv();
+      const link = await passwordSetupLink(email);
+      await emailProvider(env).send({ ...renderStaffResetEmail(link), to: email, from: senderAddress(env), idempotencyKey: crypto.randomUUID() });
+    } catch (error) {
+      console.error("staff password reset email failed", error instanceof Error ? error.message : error);
+    }
   }
   return jsonOk({ message: GENERIC });
 }

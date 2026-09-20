@@ -42,7 +42,9 @@ export function escapeHtml(value: string | number): string {
 
 const e = escapeHtml;
 
-function layout(preheader: string, body: string): string {
+const BOOKING_FOOTER = "You're receiving this because a booking was made with this email address.";
+
+function layout(preheader: string, body: string, footer = BOOKING_FOOTER): string {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motion RS4V</title></head>
 <body style="margin:0;padding:0;background:#f3f0e9;font-family:Arial,Helvetica,sans-serif;color:#141413;">
 <span style="display:none;max-height:0;overflow:hidden;">${e(preheader)}</span>
@@ -54,7 +56,7 @@ function layout(preheader: string, body: string): string {
 </td></tr>
 <tr><td style="padding:28px;">${body}</td></tr>
 <tr><td style="padding:18px 28px;background:#faf9f5;border-top:1px solid #eeeae1;font-size:12px;line-height:18px;color:#7a766f;">
-Motion RS4V · Drive Beyond Reality<br>You're receiving this because a booking was made with this email address.
+Motion RS4V · Drive Beyond Reality<br>${e(footer)}
 </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -88,6 +90,28 @@ function driversHtml(drivers: DriverLine[]) {
 
 function driversText(drivers: DriverLine[]) {
   return drivers.map((d) => `${d.count} × ${d.experience} (${d.track})`).join(", ");
+}
+
+/** Staff "forgotten password" email. Sent straight away and never stored, since the link signs someone in. */
+export function renderStaffResetEmail(link: string): RenderedEmail {
+  return {
+    subject: "Reset your Motion RS4V console password",
+    html: layout(
+      "Choose a new password for the venue console.",
+      heading("Reset your password.") +
+        paragraph("Someone asked to reset the password for this venue console account. Use the button to choose a new one.") +
+        button("Choose a new password", link) +
+        paragraph(`<span style="font-size:13px;color:#7a766f;">The link works once and expires in an hour. If you didn't ask for this, ignore this email; your password stays the same.</span>`),
+      "You're receiving this because a password reset was requested for your staff account.",
+    ),
+    text: [
+      "Reset your Motion RS4V console password.",
+      "",
+      `Choose a new password: ${link}`,
+      "",
+      "The link works once and expires in an hour. If you didn't ask for this, ignore this email.",
+    ].join("\n"),
+  };
 }
 
 export function renderEmail<T extends TemplateName>(template: T, data: TemplateData[T]): RenderedEmail {

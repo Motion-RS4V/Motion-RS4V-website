@@ -15,10 +15,12 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "db:check-rls": "tsx scripts/check-rls.ts",
+    "email:test": "tsx scripts/send-test-email.ts",
     "test:db": "vitest run --config vitest.db.config.mts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.1135.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@supabase/ssr": "^0.12.7",

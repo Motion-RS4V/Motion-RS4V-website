@@ -9,45 +9,33 @@ import styles from "./StaffLogin.module.css";
 
 const MIN_LENGTH = 10;
 
-export function StaffResetForm() {
+export function StaffResetForm({ tokenHash }: { tokenHash: string | null }) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [again, setAgain] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ready, setReady] = useState<"checking" | "ok" | "invalid">("checking");
+  const [ready, setReady] = useState<"checking" | "ok" | "invalid">(tokenHash ? "ok" : "checking");
 
   // Built on demand, never during render, so React can keep renders pure.
   const clientRef = useRef<SupabaseClient | null>(null);
   const client = () => (clientRef.current ??= createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!));
 
-  // The code and token are single-use, so the check must run once even when React runs effects twice in development.
-  const checkRef = useRef<Promise<boolean> | null>(null);
+  // The link's token is single-use, so it's only spent when the person saves. Opening the page, a link preview
+  // or an email scanner fetching it leaves it valid.
+  const tokenRef = useRef<string | null>(tokenHash);
 
   useEffect(() => {
-    // The link carries a one-time code, or a hashed token from an owner-issued setup link; turn it into a session.
-    if (!checkRef.current) {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      const tokenHash = params.get("token_hash");
-      const supabase = client();
-      checkRef.current = tokenHash
-        ? supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" }).then(({ error }) => !error)
-        : code
-          ? supabase.auth.exchangeCodeForSession(code).then(({ error }) => !error)
-          : supabase.auth.getSession().then(({ data }) => Boolean(data.session));
+    if (tokenHash) {
+      // Drop the token from the address bar so it isn't left in history or shared by accident.
+      window.history.replaceState(null, "", window.location.pathname);
+      return;
     }
-    let cancelled = false;
-    checkRef.current.then((valid) => {
-      if (cancelled) return;
-      setReady(valid ? "ok" : "invalid");
-      // Drop the used token from the address bar so a refresh doesn't show "expired".
-      if (valid) window.history.replaceState(null, "", window.location.pathname);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    // No link token: only someone already signed in can set a password here.
+    void client()
+      .auth.getSession()
+      .then(({ data }) => setReady(data.session ? "ok" : "invalid"));
+  }, [tokenHash]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -55,6 +43,15 @@ export function StaffResetForm() {
     if (password.length < MIN_LENGTH) return setError(`Use at least ${MIN_LENGTH} characters.`);
     setBusy(true);
     setError(null);
+    if (tokenRef.current) {
+      const { error: verifyError } = await client().auth.verifyOtp({ token_hash: tokenRef.current, type: "recovery" });
+      if (verifyError) {
+        setReady("invalid");
+        setBusy(false);
+        return;
+      }
+      tokenRef.current = null;
+    }
     const { error: updateError } = await client().auth.updateUser({ password });
     if (updateError) {
       setError(updateError.message);
